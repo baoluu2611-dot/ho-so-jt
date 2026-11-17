@@ -139,6 +139,9 @@ td.num{font-variant-numeric:tabular-nums}
   <section class="card">
     <h2><span class="n">4</span>Địa chỉ lấy hàng</h2>
     <div class="hint">Ghi theo địa chỉ CŨ (phường, quận trước sáp nhập). Công ty, hộ KD: lấy theo địa chỉ trên GPKD.</div>
+    <label style="display:block;margin:8px 0"><b>Dán địa chỉ khách gửi (cũ hay mới, viết tắt cũng được)</b>
+      <input id="l_raw" placeholder="VD: T16-11a Manhattan, Vinhomes Grand Park, Long Bình, HCM"></label>
+    <div class="row" style="margin-bottom:6px"><button type="button" class="btn primary sm" id="btn-dc">Tự tách địa chỉ</button><span class="hint" id="dcmsg"></span></div>
     <div class="grid">
       <label><b>Số nhà</b><input id="l_sonha" placeholder="187"></label>
       <label><b>Đường</b><input id="l_duong" placeholder="Đường Ba Tháng Hai"></label>
@@ -456,6 +459,25 @@ $("btn-ocr").onclick = async () => {
     $("ocrmsg").textContent = `Đã điền ${n} ô (viền vàng). Soát lại từng ô với giấy tờ trước khi gửi.` + (d.canh_bao ? " Lưu ý: " + d.canh_bao : "") + (images.giayto.length > 6 ? " Chỉ đọc 6 ảnh đầu." : "");
   } catch(e){ $("ocrmsg").textContent = "Đọc chưa được: " + (e && e.message || e) + ". Bấm lại hoặc tự điền."; }
   ocrState();
+};
+/* ---------- tách địa chỉ lấy hàng bằng Gemini (đổi về địa chỉ cũ) ---------- */
+$("btn-dc").onclick = async () => {
+  const t = v("l_raw"), b = $("btn-dc");
+  if (!t){ $("dcmsg").textContent = "Dán địa chỉ vào ô trên trước."; return; }
+  if (!API){ $("dcmsg").textContent = "Trang chưa nối với Google Sheet."; return; }
+  if (CFG && !CFG.ocr){ $("dcmsg").textContent = "Chủ trang chưa cài khóa Gemini. Tự điền 4 ô bên dưới nhé."; return; }
+  b.disabled = true; $("dcmsg").textContent = "Đang đổi địa chỉ (khoảng 10–60 giây)...";
+  try {
+    const r = await apiPost({action:"diachi", text:t});
+    if (!r.ok) throw new Error(r.error);
+    const d = r.data || {}; let n = 0;
+    for (const [k, id] of [["so_nha","l_sonha"],["duong","l_duong"],["phuong","l_phuong"],["quan","l_quan"]]){
+      const val = d[k]; if (val === null || val === undefined || String(val).trim() === "") continue;
+      $(id).value = noCity(String(val).trim()); $(id).style.borderColor = "var(--warn)"; n++; }
+    invalidate();
+    $("dcmsg").textContent = `Đã điền ${n}/4 ô (viền vàng), soát lại.` + (d.ghi_chu ? " " + d.ghi_chu : "");
+  } catch(e){ $("dcmsg").textContent = "Chưa tách được: " + (e && e.message || e) + ". Bấm lại hoặc tự điền."; }
+  b.disabled = false;
 };
 document.querySelectorAll("#view-form input, #view-form select").forEach(el => el.addEventListener("input", () => { el.style.borderColor = ""; }));
 
