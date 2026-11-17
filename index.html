@@ -135,6 +135,8 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Giới tính</b><select id="g_gioitinh"><option>Nam</option><option>Nữ</option></select></label>
     </div>
     <label><b id="l_diachi">Địa chỉ thường trú trên CCCD (chép y chang)</b><input id="g_diachi"></label>
+    <div class="note warn">Thông tin "Đọc tự động" do AI đọc nên vẫn có thể sai (dù hiếm): sai 1 số, sai dấu, sai ngày. Đối chiếu <b>từng ô</b> với giấy tờ gốc trước khi gửi.</div>
+    <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_gt" style="width:auto"> Tôi đã đối chiếu từng ô ở trên với CCCD / GPKD gốc: họ tên, số giấy tờ, ngày cấp, ngày sinh, địa chỉ đều đúng y chang.</label>
   </section>
 
   <section class="card">
@@ -148,7 +150,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Đường</b><input id="l_duong" placeholder="Đường Ba Tháng Hai"></label>
       <label><b>Phường / xã cũ</b><input id="l_phuong" placeholder="Phường 11"></label>
       <label><b>Quận / huyện cũ</b><input id="l_quan" placeholder="Quận 10"></label>
-      <label><b>Bưu cục lấy hàng</b><input id="l_bc" placeholder="028W61 hoặc địa chỉ bưu cục"></label>
+      <label><b>Bưu cục lấy hàng</b><input id="l_bc" placeholder="Mã bưu cục, vd 028W61" style="text-transform:uppercase"></label>
     </div>
   </section>
 
@@ -160,6 +162,8 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Số tài khoản</b><input id="b_so" inputmode="numeric"></label>
       <label><b>Ngân hàng - chi nhánh</b><input id="b_nh" placeholder="Techcombank - Chi nhánh Hồ Chí Minh"></label>
     </div>
+    <div class="note warn">Web không tự kiểm tra được tên chủ tài khoản. Cách kiểm tra nhanh: mở app ngân hàng của bạn, vào chuyển khoản, nhập số tài khoản và ngân hàng của khách → app sẽ hiện tên chủ tài khoản → đối chiếu rồi thoát ra, <b>không cần chuyển tiền</b>. Sai số tài khoản thì tiền COD về sai người.</div>
+    <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_tk" style="width:auto"> Tôi đã kiểm tra: số tài khoản đúng, app ngân hàng hiện đúng tên chủ tài khoản ở trên.</label>
   </section>
 
   <section class="card">
@@ -333,7 +337,7 @@ function readForm(){
   return {
     loai: l, ky: document.querySelector('input[name="ky"]:checked').value,
     sale: {ten:v("s_ten"), msnv:v("s_msnv"), khu:v("s_khu"), sdt:v("s_sdt"), bc_tao_ma:v("s_bc")},
-    bc_lay_hang: v("l_bc"), crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
+    bc_lay_hang: v("l_bc").toUpperCase(), crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
     ten_shop: l === "canhan" ? v("k_shop") : "", sdt: v("k_sdt"), email: v("k_email"),
     giayto: l === "canhan"
       ? {ho_ten:v("g_nguoi"), so:v("g_so"), ngay_cap:v("g_ngaycap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")}
@@ -356,6 +360,9 @@ function localChecks(f){
   for (const d of ["g_ngaycap","g_ngaysinh"]) if (v(d) && !/^\d{2}\/\d{2}\/\d{4}$/.test(v(d))) e.push("Ngày phải ghi dạng dd/mm/yyyy: " + v(d));
   if (!images.giayto.length) e.push(f.loai==="canhan" ? "Chưa có ảnh CCCD 2 mặt" : "Chưa có ảnh/PDF GPKD");
   if (!images.tin_nhan.length) e.push("Chưa có ảnh tin nhắn chốt với khách");
+  if (v("l_bc") && !/^\d{3}[A-Z][A-Z0-9]{2}$/i.test(v("l_bc"))) e.push("Bưu cục lấy hàng chỉ ghi mã bưu cục, vd 028W61 (đang ghi: " + v("l_bc") + ")");
+  if (!$("xn_gt").checked) e.push("Chưa tick xác nhận đã đối chiếu thông tin với CCCD / GPKD (mục 3)");
+  if (!$("xn_tk").checked) e.push("Chưa tick xác nhận đã kiểm tra số tài khoản và tên chủ tài khoản (mục 5)");
   const prices = [f.gia.hcm, f.gia.tinh, f.gia.hcm2, f.gia.tinh2].map(digits).filter(Boolean);
   if (prices.length && Math.min(...prices) < 19000 && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Giá dưới 19.000 cần ảnh giá đối thủ và ảnh duyệt giá");
   return e;
@@ -459,7 +466,8 @@ $("btn-ocr").onclick = async () => {
       $(id).value = String(val).trim(); $(id).style.borderColor = "var(--warn)"; n++; }
     if (l === "hkd" && !$("g_chucvu").value) $("g_chucvu").value = "Chủ hộ";
     invalidate();
-    $("ocrmsg").textContent = `Đã điền ${n} ô (viền vàng). Soát lại từng ô với giấy tờ trước khi gửi.` + (d.canh_bao ? " Lưu ý: " + d.canh_bao : "") + (images.giayto.length > 6 ? " Chỉ đọc 6 ảnh đầu." : "");
+    $("xn_gt").checked = false;
+    $("ocrmsg").textContent = `Đã điền ${n} ô (viền vàng). AI có thể đọc sai: đối chiếu từng ô với giấy tờ gốc rồi tick xác nhận cuối mục 3.` + (d.canh_bao ? " Lưu ý: " + d.canh_bao : "") + (images.giayto.length > 6 ? " Chỉ đọc 6 ảnh đầu." : "");
   } catch(e){ $("ocrmsg").textContent = "Đọc chưa được: " + (e && e.message || e) + ". Bấm lại hoặc tự điền."; }
   ocrState();
 };
@@ -483,6 +491,10 @@ $("btn-dc").onclick = async () => {
   b.disabled = false;
 };
 document.querySelectorAll("#view-form input, #view-form select").forEach(el => el.addEventListener("input", () => { el.style.borderColor = ""; }));
+/* sửa thông tin sau khi đã tick xác nhận thì phải tick lại */
+["g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_ngaysinh","g_gioitinh","g_diachi"].forEach(id => $(id).addEventListener("input", () => { $("xn_gt").checked = false; }));
+["b_chu","b_so","b_nh"].forEach(id => $(id).addEventListener("input", () => { $("xn_tk").checked = false; }));
+$("l_bc").addEventListener("change", () => { $("l_bc").value = $("l_bc").value.trim().toUpperCase(); });
 
 /* ---------- tạo file + gửi ---------- */
 let lastCode = null;
