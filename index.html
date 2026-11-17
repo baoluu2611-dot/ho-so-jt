@@ -482,6 +482,8 @@ function engine(){
     const res = await fetch("bundle.json"); const b64 = (await res.json()).b64;
     const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
     py.unpackArchive(bin.buffer, "zip", {extractDir: "/app"});
+    /* tên file tiếng Việt trong zip có thể bị đọc sai mã (cp437) -> đổi lại cho đúng */
+    py.runPython("import os\nfor _r, _d, _f in os.walk('/app', topdown=False):\n    for _n in _d + _f:\n        try: _m = _n.encode('cp437').decode('utf-8')\n        except Exception: continue\n        if _m != _n: os.rename(os.path.join(_r, _n), os.path.join(_r, _m))");
     py.runPython("import sys; sys.path.insert(0, '/app')\nimport web_entry");
     /* Bộ tạo file cũ (chưa có phụ lục): tạm sửa địa chỉ tạm trú cá nhân = địa chỉ lấy hàng. Bundle mới đã có sẵn nên bỏ qua */
     py.runPython("try:\n    import pl\nexcept ImportError:\n    import form_map as _fm\n    _b0 = _fm.build\n    def _b(f, today, _b0=_b0):\n        cols, err = _b0(f, today)\n        p = [str(cols[k]).strip() for k in ('AC', 'AD', 'AE', 'AF') if cols.get(k)]\n        if p and f.get('loai') == 'canhan': cols['Z'] = ', '.join(p) + ', TP. Hồ Chí Minh'\n        return cols, err\n    _fm.build = _b");
