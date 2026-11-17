@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hồ sơ hợp đồng J&amp;T</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Bố cục: 1 cột form đánh số theo thứ tự hồ sơ, thanh trên có tab; màu đỏ J&T chỉ dùng cho nút chính */
+  --bg:#f5f4f3; --panel:#ffffff; --ink:#1d1b1b; --muted:#6b6464; --line:#e3dfdd; --accent:#d71920; --accent-ink:#ffffff;
+  --ok:#1f7a45; --warn:#9a6200; --bad:#b3261e; --soft:#faf1f1;
+  --font:"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#161414; --panel:#211e1e; --ink:#f1eded; --muted:#a59d9d; --line:#3a3434; --accent:#ef3b41; --accent-ink:#ffffff;
+  --ok:#5cc489; --warn:#e3a640; --bad:#ff7b72; --soft:#2b2020; color-scheme: dark; } }
+:root[data-theme="dark"]{
+  --bg:#161414; --panel:#211e1e; --ink:#f1eded; --muted:#a59d9d; --line:#3a3434; --accent:#ef3b41; --accent-ink:#ffffff;
+  --ok:#5cc489; --warn:#e3a640; --bad:#ff7b72; --soft:#2b2020; color-scheme: dark; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font)}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.bar{max-width:920px;margin:0 auto;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{font-weight:700;font-size:17px;display:flex;gap:8px;align-items:center}
+.brand i{display:inline-block;width:10px;height:22px;background:var(--accent);border-radius:2px}
+nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+nav button{border:1px solid transparent;background:none;color:var(--muted);padding:6px 12px;border-radius:999px;font:inherit;cursor:pointer}
+nav button[aria-current="true"]{color:var(--ink);border-color:var(--line);background:var(--bg);font-weight:600}
+main{max-width:920px;margin:0 auto;padding:20px 16px 80px;display:grid;gap:16px}
+.note{padding:10px 14px;border-radius:10px;background:var(--soft);border:1px solid var(--line);font-size:14px}
+.note.bad{border-color:var(--bad);color:var(--bad)} .note.ok{border-color:var(--ok);color:var(--ok)} .note.warn{border-color:var(--warn);color:var(--warn)}
+section.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px}
+section.card h2{margin:0;font-size:16px;display:flex;gap:10px;align-items:baseline;text-wrap:balance}
+section.card h2 .n{font-variant-numeric:tabular-nums;color:var(--accent);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 12px}
+label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+label b{color:var(--ink);font-weight:500}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.hint{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--ink);cursor:pointer;font-size:14px;background:var(--bg)}
+.chips input{width:auto;margin:0}
+.chips label:has(input:checked){border-color:var(--accent);background:var(--soft)}
+.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:500}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.sm{padding:5px 10px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.files{display:flex;gap:8px;flex-wrap:wrap}
+.thumb{width:84px;height:84px;border-radius:8px;border:1px solid var(--line);object-fit:cover;background:var(--bg)}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.pill.wait{color:var(--warn)} .pill.ok{color:var(--ok)} .pill.bad{color:var(--bad)} .pill.free{color:var(--muted)}
+pre.prev{margin:0;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;white-space:nowrap}
+td.num{font-variant-numeric:tabular-nums}
+.qr{display:grid;justify-items:center;gap:8px;padding:12px;background:#fff;border-radius:12px;width:max-content;max-width:100%;color:#111}
+.stickybar{position:sticky;bottom:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+[hidden]{display:none !important}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="brand"><i></i>Hồ sơ hợp đồng J&amp;T</div>
+  <span id="engine" class="hint">Bộ tạo file: chưa tải</span>
+  
+</div></header>
+
+<main>
+<div id="access" class="note" hidden></div>
+
+<!-- ===================== LÊN HỒ SƠ ===================== -->
+<div id="view-form" style="display:grid;gap:16px">
+  <div class="note">Điền đúng như trên giấy tờ. Trang sẽ tự điền hợp đồng, phiếu OA, file tạo mã, file CCCD/GPKD và file tin nhắn chốt theo mẫu của Team hợp đồng. Nội dung hợp đồng không bị sửa, chỉ điền thông tin khách. Bấm "Đọc tự động" thì ảnh giấy tờ được gửi cho Google Gemini đọc. Hồ sơ gửi lên chỉ được lưu tạm, gửi mail xong là xóa.</div>
+
+  <section class="card">
+    <h2><span class="n">1</span>Sale phụ trách</h2>
+    <div class="chips" id="presets"></div>
+    <div class="grid">
+      <label><b>Họ tên sale</b><input id="s_ten" placeholder="NGUYỄN VĂN A"></label>
+      <label><b>Mã nhân viên</b><input id="s_msnv" inputmode="numeric" placeholder="Mã nhân viên"></label>
+      <label><b>Khu</b><input id="s_khu" placeholder="3"></label>
+      <label><b>SĐT sale</b><input id="s_sdt" inputmode="tel"></label>
+      <label><b>Bưu cục báo tạo mã</b><input id="s_bc" placeholder="028Y91"></label>
+      <label><b>Email nhận file</b><input id="s_email" type="email" placeholder="email của sale"></label>
+      <label id="w_manhom" hidden><b>Mã nhóm</b><input id="s_manhom" placeholder="Hỏi trưởng nhóm"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span>Khách hàng</h2>
+    <div class="chips" role="radiogroup" aria-label="Loại khách">
+      <label><input type="radio" name="loai" value="canhan" checked> Cá nhân (CCCD)</label>
+      <label><input type="radio" name="loai" value="hkd"> Hộ kinh doanh</label>
+      <label><input type="radio" name="loai" value="congty"> Công ty</label>
+    </div>
+    <div class="chips" role="radiogroup" aria-label="Hình thức ký">
+      <label><input type="radio" name="ky" value="online" checked> Ký online</label>
+      <label><input type="radio" name="ky" value="tay"> Ký tay</label>
+    </div>
+    <div class="grid">
+      <label id="w_shop"><b>Tên shop</b><input id="k_shop" placeholder="Để trống = tên trên CCCD"></label>
+      <label><b>SĐT khách</b><input id="k_sdt" inputmode="tel" placeholder="10 số"></label>
+      <label><b>Gmail nhận đối soát</b><input id="k_email" type="email" placeholder="...@gmail.com"></label>
+      <label><b>Mã CRM</b><input id="k_crm" inputmode="numeric"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span><span id="gt_title">Thông tin trên CCCD</span></h2>
+    <div class="hint" id="gt_hint"></div>
+    <div style="display:grid;gap:6px">
+      <label for="f_giayto"><b id="l_gtimg">Ảnh CCCD 2 mặt</b></label>
+      <div class="row"><input type="file" id="f_giayto" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" data-clear="giayto">Xóa ảnh</button><button type="button" class="btn primary sm" id="btn-ocr">Đọc tự động</button></div>
+      <div class="files" id="t_giayto"></div>
+      <div id="ocrmsg" class="hint"></div>
+    </div>
+    <div class="grid">
+      <label id="w_tochuc" hidden><b>Tên hộ KD / công ty (y chang GPKD)</b><input id="g_tochuc"></label>
+      <label><b id="l_nguoi">Họ tên (có dấu)</b><input id="g_nguoi"></label>
+      <label id="w_chucvu" hidden><b>Chức danh</b><input id="g_chucvu" placeholder="Chủ hộ / Giám đốc"></label>
+      <label><b id="l_so">Số CCCD (12 số)</b><input id="g_so"></label>
+      <label><b id="l_ngaycap">Ngày cấp (mặt sau)</b><input id="g_ngaycap" placeholder="dd/mm/yyyy"></label>
+      <label id="w_noicap" hidden><b>Nơi cấp (y chang GPKD)</b><input id="g_noicap" placeholder="SỞ TÀI CHÍNH THÀNH PHỐ HỒ CHÍ MINH"></label>
+      <label><b>Ngày sinh</b><input id="g_ngaysinh" placeholder="dd/mm/yyyy"></label>
+      <label><b>Giới tính</b><select id="g_gioitinh"><option>Nam</option><option>Nữ</option></select></label>
+    </div>
+    <label><b id="l_diachi">Địa chỉ thường trú trên CCCD (chép y chang)</b><input id="g_diachi"></label>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">4</span>Địa chỉ lấy hàng</h2>
+    <div class="hint">Ghi theo địa chỉ CŨ (phường, quận trước sáp nhập). Công ty, hộ KD: lấy theo địa chỉ trên GPKD.</div>
+    <div class="grid">
+      <label><b>Số nhà</b><input id="l_sonha" placeholder="187"></label>
+      <label><b>Đường</b><input id="l_duong" placeholder="Đường Ba Tháng Hai"></label>
+      <label><b>Phường / xã cũ</b><input id="l_phuong" placeholder="Phường 11"></label>
+      <label><b>Quận / huyện cũ</b><input id="l_quan" placeholder="Quận 10"></label>
+      <label><b>Bưu cục lấy hàng</b><input id="l_bc" placeholder="028W61 hoặc địa chỉ bưu cục"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">5</span>Tài khoản nhận tiền COD</h2>
+    <div class="hint">Chủ tài khoản phải trùng người đứng tên hợp đồng: cá nhân là tên trên CCCD, hộ KD là tên hộ, công ty là tên công ty.</div>
+    <div class="grid">
+      <label><b>Chủ tài khoản</b><input id="b_chu" placeholder="Tự điền theo tên hợp đồng"></label>
+      <label><b>Số tài khoản</b><input id="b_so" inputmode="numeric"></label>
+      <label><b>Ngân hàng - chi nhánh</b><input id="b_nh" placeholder="Techcombank - Chi nhánh Hồ Chí Minh"></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">6</span>Hàng gửi và đối thủ</h2>
+    <div class="grid">
+      <label><b>Mặt hàng</b><select id="h_mathang"></select></label>
+      <label><b>Sản lượng / tháng</b><input id="h_sl" inputmode="numeric" placeholder="500"></label>
+      <label><b>Đối thủ đang dùng</b><select id="h_doithu"></select></label>
+      <label><b>Nguồn khách</b><select id="h_nguon"></select></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">7</span>Giá và phí</h2>
+    <div class="grid">
+      <label><b>Mốc kg đầu</b><input id="p_moc" inputmode="numeric" value="2"></label>
+      <label><b>Giá HCM → HCM</b><input id="p_hcm" inputmode="numeric" placeholder="16000"></label>
+      <label><b>Giá HCM → tỉnh</b><input id="p_tinh" inputmode="numeric" placeholder="22000"></label>
+      <label><b>Mỗi kg tiếp theo</b><input id="p_inc" inputmode="numeric" value="5000"></label>
+    </div>
+    <label class="row" style="color:var(--ink)"><input type="checkbox" id="p_bac2" style="width:auto"> Có bậc giá thứ 2 (vd 2–5kg)</label>
+    <div class="grid" id="w_bac2" hidden>
+      <label><b>Đến mốc kg</b><input id="p_moc2" inputmode="numeric" placeholder="5"></label>
+      <label><b>Giá HCM → HCM bậc 2</b><input id="p_hcm2" inputmode="numeric"></label>
+      <label><b>Giá HCM → tỉnh bậc 2</b><input id="p_tinh2" inputmode="numeric"></label>
+    </div>
+    <div class="grid">
+      <label><b>Phí khai giá (%)</b><input id="p_khaigia" inputmode="decimal" value="1"></label>
+      <label><b>Phí chuyển hoàn</b><select id="p_hoan"><option value="mien">Miễn phí</option><option value="50">50% cước</option></select></label>
+      <label><b>COD</b><select id="p_cod"><option value="co">Có COD</option><option value="khong">Không COD</option></select></label>
+      <label><b>Giao 1 phần</b><select id="p_g1p"><option value="co">Có</option><option value="khong">Không</option></select></label>
+      <label><b>Đối soát</b><select id="p_ds"><option value="02">2 lần/tuần (T3, T5)</option><option value="03">3 lần/tuần (T2, T4, T6)</option><option value="05">5 lần/tuần</option><option value="thang">1 lần/tháng</option></select></label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">8</span>Ảnh</h2>
+    <div class="hint">Ảnh xếp vào file tạo mã theo đúng thứ tự dưới đây. GPKD là file PDF cũng được.</div>
+    <div id="imgs" style="display:grid;gap:12px"></div>
+  </section>
+
+  <div id="checkout" class="note" hidden></div>
+  <div class="stickybar">
+    <button class="btn" id="btn-check">Kiểm tra hồ sơ</button>
+    <button class="btn primary" id="btn-send" disabled>Tạo file &amp; gửi hồ sơ</button>
+    <span id="formmsg" class="hint"></span>
+  </div>
+</div>
+
+<section class="card" id="done" hidden>
+  <h2>Đã gửi hồ sơ</h2>
+  <div id="done-body"></div>
+  <div class="row"><button class="btn" id="btn-status">Kiểm tra trạng thái</button><button class="btn" id="btn-new">Lên hồ sơ khác</button><span id="statusmsg" class="hint"></span></div>
+</section>
+<section class="card">
+  <h2>Tra cứu hồ sơ đã gửi</h2>
+  <div class="row"><input id="q_code" placeholder="Mã hồ sơ, vd HS7K2P9Q" style="max-width:260px"><button class="btn" id="btn-q">Tra cứu</button><span id="q_msg" class="hint"></span></div>
+</section>
+</main>
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const dbg = [];
+function dlog(s){ dbg.push(s); const el = $("access"); if (el){ el.hidden = false; el.className = "note warn"; el.style.whiteSpace = "pre-wrap"; el.textContent = "Nhật ký lỗi:\n" + dbg.slice(-12).join("\n"); } }
+window.addEventListener("error", e => dlog("ERR " + e.message));
+window.addEventListener("unhandledrejection", e => dlog("REJ " + (e.reason && e.reason.message || e.reason)));
+const PRESETS = [];
+const MATHANG = ["Thời Trang Và Phụ Kiện","Mỹ Phẩm, Làm Đẹp, Chăm Sóc Sức Khỏe","Thực Phẩm Đóng Gói","Đồ Gia Dụng, Trang Trí Nội Thất","Sách, Văn Phòng Phẩm","Đồ Chơi, Đồ Ăn Thú Cưng","Thể Thao Và Dã Ngoại","Mẹ Và Bé","Phụ Kiện, Linh Kiện Điện Tử","Cây Cảnh Và Phân Bón","Phụ Kiện Xe, Phương Tiện Giao Thông","Khác (Ghi Ở Ghi Chú)"];
+const DOITHU = ["GHTK","GHN","Viettel Post","BEST","VN POST","247 Express","Nhất Tín Logistics","Shopee Express","Không có ","J&T"];
+const NGUON = ["Hội Nhóm MXH","Quét Đường","Đi theo bên cùng ngành","From CS","KH cũ giới thiệu","Người Quen Giới Thiệu","KH Đến Bưu Cục ","Livestream","Shipper Ghi Nhận","KH Là Người Quen","Mua Data","Tuyển NV cùng ngành","Tìm Kiếm Online (Web, Google)"];
+const BANKS = [["970436","Vietcombank"],["970415","VietinBank"],["970418","BIDV"],["970405","Agribank"],["970407","Techcombank"],["970422","MB Bank"],["970416","ACB"],["970432","VPBank"],["970423","TPBank"],["970403","Sacombank"],["970441","VIB"],["970437","HDBank"],["970426","MSB"],["970443","SHB"],["970448","OCB"],["970440","SeABank"],["970431","Eximbank"],["970449","LPBank"],["970428","Nam A Bank"],["546034","Cake by VPBank"],["970454","BVBank"],["970452","KienlongBank"],["970412","PVcomBank"],["970425","ABBank"],["970409","Bac A Bank"],["970427","VietA Bank"],["970419","NCB"],["970400","Saigonbank"],["970433","Vietbank"],["970438","BaoViet Bank"]];
+const IMG_ROLES = [
+  ["san_pham","Ảnh sản phẩm / kho", false],
+  ["gia_doi_thu","Ảnh giá đối thủ (bắt buộc khi giá dưới 19.000)", false],
+  ["duyet_gia","Ảnh duyệt giá của TPKD (bắt buộc khi giá dưới 19.000)", false],
+  ["tin_nhan","Tin nhắn chốt với khách", true],
+];
+const fill = (sel, arr) => { sel.innerHTML = arr.map(v => `<option>${v}</option>`).join(""); };
+fill($("h_mathang"), MATHANG); fill($("h_doithu"), DOITHU); fill($("h_nguon"), NGUON);
+
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const todayISO = () => new Date().toLocaleDateString("sv-SE", {timeZone:"Asia/Ho_Chi_Minh"});
+const fmtDate = ms => new Date(ms).toLocaleDateString("vi-VN", {timeZone:"Asia/Ho_Chi_Minh"});
+const money = n => Number(n||0).toLocaleString("vi-VN") + "đ";
+const store = { get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+function newCode(){ const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s="HS"; const r=crypto.getRandomValues(new Uint8Array(6)); for (const x of r) s+=a[x%a.length]; return s; }
+
+
+$("presets").innerHTML = PRESETS.map((p,i)=>`<button type="button" class="btn sm" data-i="${i}">${p.nick}</button>`).join("") + `<span class="hint" style="align-self:center">Sale nhóm khác tự điền, trang sẽ nhớ cho lần sau.</span>`;
+$("presets").onclick = e => { const i = e.target.dataset.i; if (i===undefined) return; const p = PRESETS[i];
+  $("s_ten").value = p.ten; $("s_msnv").value = p.msnv; $("s_khu").value = p.khu; $("s_sdt").value = p.sdt; $("s_bc").value = p.bc; if (!p.ten) $("s_ten").focus(); invalidate(); };
+const savedSale = store.get("jt-sale"); if (savedSale) for (const k of ["s_ten","s_msnv","s_khu","s_sdt","s_bc","s_email","s_manhom"]) if (savedSale[k]) $(k).value = savedSale[k];
+if (!$("s_bc").value) $("s_bc").value = "028Y91";
+
+
+const loai = () => document.querySelector('input[name="loai"]:checked').value;
+function applyLoai(){
+  const l = loai(), ca = l === "canhan";
+  $("w_shop").hidden = !ca; $("w_tochuc").hidden = ca; $("w_chucvu").hidden = ca; $("w_noicap").hidden = ca;
+  $("gt_title").textContent = ca ? "Thông tin trên CCCD" : "Thông tin trên GPKD";
+  $("gt_hint").textContent = ca ? "Tải ảnh CCCD 2 mặt rồi bấm Đọc tự động. Trang tự điền các ô bên dưới, bạn soát lại cho đúng y chang căn cước." : "Tải ảnh hoặc PDF GPKD (thêm ảnh CCCD người đại diện để lấy ngày sinh, giới tính) rồi bấm Đọc tự động. Soát lại y chang giấy phép, kể cả chữ in hoa.";
+  $("l_gtimg").textContent = ca ? "Ảnh CCCD 2 mặt" : "Ảnh / PDF GPKD (+ CCCD người đại diện nếu có)";
+  $("l_nguoi").textContent = ca ? "Họ tên (có dấu)" : "Người đại diện (có dấu)";
+  $("l_so").textContent = ca ? "Số CCCD (12 số)" : (l==="hkd" ? "Mã số hộ kinh doanh" : "Mã số doanh nghiệp");
+  $("l_ngaycap").textContent = ca ? "Ngày cấp (mặt sau)" : "Ngày đăng ký lần đầu";
+  $("l_diachi").textContent = ca ? "Địa chỉ thường trú trên CCCD (chép y chang)" : "Địa chỉ trụ sở trên GPKD (chép y chang)";
+  if (!ca && !$("g_chucvu").value) $("g_chucvu").value = l === "hkd" ? "Chủ hộ" : "";
+  invalidate();
+}
+document.querySelectorAll('input[name="loai"]').forEach(r => r.onchange = applyLoai);
+$("p_bac2").onchange = () => { $("w_bac2").hidden = !$("p_bac2").checked; invalidate(); };
+
+
+IMG_ROLES.unshift(["giayto","", true]);
+const images = {}; IMG_ROLES.forEach(([k]) => images[k] = []);
+$("imgs").innerHTML = IMG_ROLES.slice(1).map(([k,label,req],i) => `
+  <div style="display:grid;gap:6px">
+    <label for="f_${k}"><b>${i+1}. ${label}${req ? "" : " · không bắt buộc"}</b></label>
+    <div class="row"><input type="file" id="f_${k}" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" data-clear="${k}">Xóa ảnh</button></div>
+    <div class="files" id="t_${k}"></div>
+  </div>`).join("");
+async function toImage(blob){
+  const url = URL.createObjectURL(blob);
+  try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { setTimeout(()=>URL.revokeObjectURL(url), 1000); }
+}
+async function normalizeImage(file){
+  const okType = /image\/(png|jpeg)/.test(file.type);
+  const img = await toImage(file);
+  const max = 2000, big = Math.max(img.naturalWidth, img.naturalHeight) > max;
+  if (okType && !big) return {blob:file, ext: file.type === "image/png" ? "png" : "jpg"};
+  const k = big ? max / Math.max(img.naturalWidth, img.naturalHeight) : 1;
+  const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+  const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.9)); return {blob, ext:"jpg"};
+}
+async function pdfToImages(file){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf = await pdfjsLib.getDocument({data: new Uint8Array(await file.arrayBuffer())}).promise; const out = [];
+  for (let i=1; i<=pdf.numPages; i++){
+    const page = await pdf.getPage(i); const vp = page.getViewport({scale: 2});
+    const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+    await page.render({canvasContext: c.getContext("2d"), viewport: vp}).promise;
+    out.push({blob: await new Promise(r => c.toBlob(r, "image/png")), ext:"png"});
+  }
+  return out;
+}
+function renderThumbs(k){
+  $("t_"+k).innerHTML = ""; images[k].forEach(im => { const t = document.createElement("img"); t.className="thumb"; t.alt=""; t.src = URL.createObjectURL(im.blob); $("t_"+k).appendChild(t); });
+}
+IMG_ROLES.forEach(([k]) => {
+  $("f_"+k).onchange = async e => {
+    $("formmsg").textContent = "Đang đọc ảnh...";
+    try { for (const f of e.target.files){ if (f.type === "application/pdf") images[k].push(...await pdfToImages(f)); else images[k].push(await normalizeImage(f)); } $("formmsg").textContent = ""; }
+    catch(err){ $("formmsg").textContent = "Không đọc được 1 file ảnh. Thử chụp màn hình rồi tải lại ảnh PNG/JPG."; }
+    e.target.value = ""; renderThumbs(k); invalidate(); if (k === "giayto") ocrState();
+  };
+});
+const clearImgs = e => { const k = e.target.dataset.clear; if (!k) return; images[k] = []; renderThumbs(k); invalidate(); ocrState(); };
+$("imgs").onclick = clearImgs; $("view-form").querySelector('[data-clear="giayto"]').onclick = clearImgs;
+
+
+const v = id => $(id).value.trim();
+function readForm(){
+  const l = loai();
+  return {
+    loai: l, ky: document.querySelector('input[name="ky"]:checked').value,
+    sale: {ten:v("s_ten"), msnv:v("s_msnv"), khu:v("s_khu"), sdt:v("s_sdt"), bc_tao_ma:v("s_bc")},
+    bc_lay_hang: v("l_bc"), crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
+    ten_shop: l === "canhan" ? v("k_shop") : "", sdt: v("k_sdt"), email: v("k_email"),
+    giayto: l === "canhan"
+      ? {ho_ten:v("g_nguoi"), so:v("g_so"), ngay_cap:v("g_ngaycap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")}
+      : {ten_to_chuc:v("g_tochuc"), nguoi_dai_dien:v("g_nguoi"), chuc_vu:v("g_chucvu"), so:v("g_so"), ngay_cap:v("g_ngaycap"), noi_cap:v("g_noicap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")},
+    lay_hang: {so_nha:noCity(v("l_sonha")), duong:noCity(v("l_duong")), phuong:noCity(v("l_phuong")), quan:noCity(v("l_quan"))},
+    bank: {chu_tk:v("b_chu"), so_tk:v("b_so"), ngan_hang:v("b_nh")},
+    gia: {moc:v("p_moc"), hcm:v("p_hcm"), tinh:v("p_tinh"), tiep_theo:v("p_inc"), ...($("p_bac2").checked ? {moc2:v("p_moc2"), hcm2:v("p_hcm2"), tinh2:v("p_tinh2")} : {})},
+    khai_gia: v("p_khaigia"), hoan: $("p_hoan").value, cod: $("p_cod").value, giao_1_phan: $("p_g1p").value, doi_soat: $("p_ds").value,
+  };
+}
+const noCity = s => s.replace(/[,\s]*(thành phố|tp\.?)\s*(hồ chí minh|hcm)\.?\s*$/i, "").replace(/[.,\s]+$/, "");
+const digits = s => Number(String(s||"").replace(/\D/g,"")) || 0;
+function localChecks(f){
+  const e = [];
+  const need = [["s_ten","Họ tên sale"],["s_msnv","Mã nhân viên sale"],["s_sdt","SĐT sale"],["s_bc","Bưu cục báo tạo mã"],["k_sdt","SĐT khách"],["k_email","Gmail đối soát"],
+    ["g_nguoi", f.loai==="canhan" ? "Họ tên trên CCCD" : "Người đại diện"],["g_so","Số giấy tờ"],["g_ngaycap","Ngày cấp"],["g_diachi","Địa chỉ trên giấy tờ"],
+    ["l_sonha","Số nhà lấy hàng"],["l_duong","Đường lấy hàng"],["l_phuong","Phường cũ"],["l_quan","Quận cũ"],["l_bc","Bưu cục lấy hàng"],["b_so","Số tài khoản"],["b_nh","Ngân hàng"],["p_hcm","Giá HCM → HCM"],["p_tinh","Giá HCM → tỉnh"]];
+  if (f.loai !== "canhan") need.push(["g_tochuc","Tên hộ KD / công ty"],["g_noicap","Nơi cấp GPKD"],["g_chucvu","Chức danh người đại diện"]);
+  for (const [id,n] of need) if (!v(id)) e.push("Thiếu " + n);
+  for (const d of ["g_ngaycap","g_ngaysinh"]) if (v(d) && !/^\d{2}\/\d{2}\/\d{4}$/.test(v(d))) e.push("Ngày phải ghi dạng dd/mm/yyyy: " + v(d));
+  if (!images.giayto.length) e.push(f.loai==="canhan" ? "Chưa có ảnh CCCD 2 mặt" : "Chưa có ảnh/PDF GPKD");
+  if (!images.tin_nhan.length) e.push("Chưa có ảnh tin nhắn chốt với khách");
+  const prices = [f.gia.hcm, f.gia.tinh, f.gia.hcm2, f.gia.tinh2].map(digits).filter(Boolean);
+  if (prices.length && Math.min(...prices) < 19000 && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Giá dưới 19.000 cần ảnh giá đối thủ và ảnh duyệt giá");
+  return e;
+}
+
+let pyReady = null;
+function engine(){
+  if (pyReady) return pyReady;
+  pyReady = (async () => {
+    const st = t => $("engine").textContent = "Bộ tạo file: " + t;
+    st("đang tải (lần đầu khoảng 20–40 giây)...");
+    if (typeof loadPyodide !== "function") throw new Error("không tải được pyodide.js");
+    const py = await loadPyodide({indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.2/full/"});
+    await py.loadPackage(["lxml","Pillow"]);
+    const res = await fetch("bundle.json"); const b64 = (await res.json()).b64;
+    const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    py.unpackArchive(bin.buffer, "zip", {extractDir: "/app"});
+    py.runPython("import sys; sys.path.insert(0, '/app')\nimport web_entry");
+    st("sẵn sàng");
+    return py;
+  })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
+  return pyReady;
+}
+async function pyCall(fn, ...args){ const py = await engine(); const m = py.pyimport("web_entry"); try { return JSON.parse(m[fn](...args)); } finally { m.destroy(); } }
+
+/* kiểm tra */
+let checked = null; // {form, cols, warnings}
+function invalidate(){ checked = null; $("btn-send").disabled = true; }
+$("view-form").addEventListener("input", e => { if (e.target.id && e.target.type !== "file") invalidate(); });
+function addrLayHang(c){ const p = ["AC","AD","AE","AF"].map(k => c[k]).filter(Boolean); return p.length ? p.join(", ") + ", TP. Hồ Chí Minh" : ""; }
+$("btn-check").onclick = async () => {
+  const f = readForm(); const box = $("checkout"); box.hidden = false; box.className = "note"; box.textContent = "Đang kiểm tra...";
+  store.set("jt-sale", {s_ten:v("s_ten"), s_msnv:v("s_msnv"), s_khu:v("s_khu"), s_sdt:v("s_sdt"), s_bc:v("s_bc"), s_email:v("s_email"), s_manhom:v("s_manhom")});
+  const e1 = localChecks(f);
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v("s_email"))) e1.unshift("Thiếu email nhận file (mục 1)");
+  if (CFG && CFG.canMaNhom && !v("s_manhom")) e1.unshift("Thiếu mã nhóm (mục 1)");
+  let r;
+  try { r = await pyCall("kiem_tra", JSON.stringify(f), todayISO()); }
+  catch(err){ box.className = "note bad"; box.textContent = "Không tải được bộ tạo file. Kiểm tra mạng rồi bấm Kiểm tra lại."; return; }
+  const errs = [...e1, ...r.errors];
+  if (errs.length){ box.className = "note bad"; box.innerHTML = "<b>Cần sửa trước khi gửi:</b><ul>" + errs.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>"; return; }
+  checked = {form: f, cols: r.cols, warnings: r.warnings};
+  box.className = "note ok";
+  box.innerHTML = `<b>Hồ sơ hợp lệ.</b> Kiểm tra lại lần cuối rồi bấm Gửi hồ sơ.
+    <div style="margin-top:8px">Số HĐ: <b>${esc(r.cols.S)}</b><br>Đứng tên: <b>${esc(r.cols.T)}</b> · Chủ TK: <b>${esc(r.cols.AJ)}</b><br>Lấy hàng: ${esc(addrLayHang(r.cols))}</div>
+    <pre class="prev" style="margin-top:8px">${esc(r.cols.AU)}</pre>
+    ${r.warnings.length ? "<ul>" + r.warnings.map(w => `<li>${esc(w)}</li>`).join("") + "</ul>" : ""}`;
+  $("btn-send").disabled = !API;
+  if (!API) $("formmsg").textContent = "Trang chưa nối với Google Sheet (thiếu link trong config.js).";
+};
+$("g_nguoi").addEventListener("change", () => { if (loai()==="canhan" && !$("b_chu").value) $("b_chu").placeholder = v("g_nguoi").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").toUpperCase(); });
+
+
+function tlv(id, val){ return id + String(val.length).padStart(2,"0") + val; }
+function crc16(s){ let c = 0xFFFF; for (const ch of new TextEncoder().encode(s)){ c ^= ch << 8; for (let i=0;i<8;i++) c = (c & 0x8000) ? ((c << 1) ^ 0x1021) & 0xFFFF : (c << 1) & 0xFFFF; } return c.toString(16).toUpperCase().padStart(4,"0"); }
+function vietqr(bin, stk, amount, note){
+  const acc = tlv("00","A000000727") + tlv("01", tlv("00", bin) + tlv("01", stk)) + tlv("02","QRIBFTTA");
+  let s = tlv("00","01") + tlv("01","12") + tlv("38", acc) + tlv("53","704") + (amount ? tlv("54", String(amount)) : "") + tlv("58","VN") + tlv("62", tlv("08", note)) + "6304";
+  return s + crc16(s);
+}
+function drawQR(el, cfg, amount, note){
+  el.innerHTML = ""; if (!cfg?.bin || !cfg?.stk){ el.innerHTML = `<div class="note warn">Chủ trang chưa cài tài khoản nhận phí.</div>`; return; }
+  const box = document.createElement("div"); box.className = "qr"; const q = document.createElement("div"); box.appendChild(q);
+  const bank = (BANKS.find(b => b[0] === cfg.bin) || [cfg.bin, cfg.bin])[1];
+  const cap = document.createElement("div"); cap.style.textAlign = "center"; cap.style.fontSize = "13px";
+  cap.innerHTML = `<b>${esc(money(amount))}</b><br>${esc(bank)} · ${esc(cfg.stk)}<br>${esc(cfg.ten || "")}<br>Nội dung: <b>${esc(note)}</b>`;
+  box.appendChild(cap); el.appendChild(box);
+  new QRCode(q, {text: vietqr(cfg.bin, cfg.stk, amount, note), width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M});
+}
+
+/* ---------- nối với Google Sheet của chủ trang ---------- */
+const API = (window.JT_API || "").trim();
+let CFG = null;
+async function apiGet(params){ const r = await fetch(API + "?" + new URLSearchParams(params)); return r.json(); }
+async function apiPost(body){ const r = await fetch(API, {method:"POST", body: JSON.stringify(Object.assign({ma_nhom: v("s_manhom")}, body))}); return r.json(); }
+function blobToB64(blob){ return new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).split(",")[1]); fr.onerror = () => no(fr.error); fr.readAsDataURL(blob); }); }
+function u8ToB64(u8){ let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+async function smallJpeg(blob){ const img = await toImage(blob); const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
+  return new Promise(r => c.toBlob(r, "image/jpeg", 0.88)); }
+
+/* ---------- đọc tự động CCCD / GPKD bằng Gemini ---------- */
+function ocrState(){ $("btn-ocr").disabled = false; }
+const OCR_FIELDS = {canhan:{ho_ten:"g_nguoi", so:"g_so", ngay_cap:"g_ngaycap", ngay_sinh:"g_ngaysinh", gioi_tinh:"g_gioitinh", dia_chi:"g_diachi"},
+  to_chuc:{ten_to_chuc:"g_tochuc", nguoi_dai_dien:"g_nguoi", chuc_vu:"g_chucvu", so:"g_so", ngay_cap:"g_ngaycap", noi_cap:"g_noicap", ngay_sinh:"g_ngaysinh", gioi_tinh:"g_gioitinh", dia_chi:"g_diachi",
+  so_nha:"l_sonha", duong:"l_duong", phuong:"l_phuong", quan:"l_quan"}};
+$("btn-ocr").onclick = async () => {
+  const l = loai(), map = OCR_FIELDS[l === "canhan" ? "canhan" : "to_chuc"], b = $("btn-ocr");
+  if (!images.giayto.length){ $("ocrmsg").textContent = "Tải ảnh giấy tờ lên trước (nút Choose Files bên trái), rồi bấm Đọc tự động."; return; }
+  if (!API){ $("ocrmsg").textContent = "Trang chưa nối với Google Sheet nên chưa đọc tự động được."; return; }
+  if (CFG && !CFG.ocr){ $("ocrmsg").textContent = "Chủ trang chưa cài khóa Gemini. Tự điền các ô bên dưới nhé."; return; }
+  b.disabled = true; $("ocrmsg").textContent = "Đang đọc giấy tờ (khoảng 10–30 giây)...";
+  try {
+    const imgs = []; for (const x of images.giayto.slice(0, 6)) imgs.push({mime:"image/jpeg", b64: await blobToB64(await smallJpeg(x.blob))});
+    const r = await apiPost({action:"ocr", loai:l, images:imgs});
+    if (!r.ok) throw new Error(r.error);
+    const d = r.data || {}; let n = 0;
+    for (const [k, id] of Object.entries(map)){ const val = d[k]; if (val === null || val === undefined || String(val).trim() === "") continue;
+      $(id).value = String(val).trim(); $(id).style.borderColor = "var(--warn)"; n++; }
+    if (l === "hkd" && !$("g_chucvu").value) $("g_chucvu").value = "Chủ hộ";
+    invalidate();
+    $("ocrmsg").textContent = `Đã điền ${n} ô (viền vàng). Soát lại từng ô với giấy tờ trước khi gửi.` + (d.canh_bao ? " Lưu ý: " + d.canh_bao : "") + (images.giayto.length > 6 ? " Chỉ đọc 6 ảnh đầu." : "");
+  } catch(e){ $("ocrmsg").textContent = "Đọc chưa được: " + (e && e.message || e) + ". Bấm lại hoặc tự điền."; }
+  ocrState();
+};
+document.querySelectorAll("#view-form input, #view-form select").forEach(el => el.addEventListener("input", () => { el.style.borderColor = ""; }));
+
+/* ---------- tạo file + gửi ---------- */
+let lastCode = null;
+function isFree(msnv){ return !!CFG && (CFG.free || []).includes(String(msnv).trim()); }
+$("btn-send").onclick = async () => {
+  if (!checked) return; const btn = $("btn-send"); btn.disabled = true;
+  const code = newCode(); const c = checked.cols; const f = checked.form;
+  try {
+    $("formmsg").textContent = "Đang tạo file...";
+    const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(e){}
+    const paths = {};
+    for (const [k, arr] of Object.entries(images)){ paths[k] = []; for (let i = 0; i < arr.length; i++){ const p = `/in/${code}_${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); paths[k].push(p); } }
+    const r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO());
+    if (!r.ok){ $("formmsg").textContent = ""; const box = $("checkout"); box.className = "note bad"; box.style.whiteSpace = "pre-wrap"; box.textContent = "Không tạo được file:\n" + (r.errors || []).join("\n") + (r.summary || ""); btn.disabled = false; return; }
+    const m = py.pyimport("web_entry"); m.dong_goi(JSON.stringify(r.files), "/out/" + code + ".zip"); m.destroy();
+    const zip = FS.readFile("/out/" + code + ".zip");
+    const ten = (c.T || code).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[đĐ]/g, x => x==="đ"?"d":"D").replace(/[\\/:*?"<>|]+/g,"_");
+    $("formmsg").textContent = "Đang gửi hồ sơ...";
+    const rec = { sale_ten: c.B, sale_msnv: f.sale.msnv, sale_khu: String(c.D ?? ""), loai: f.loai, ky: f.ky,
+      ten_khach: c.T || "", nguoi_dai_dien: c.U || "", sdt: c.AI || "", dia_chi_lay_hang: addrLayHang(c),
+      mat_hang: c.AM || "", san_luong: c.AO ?? "", gia: c.AU || "", doi_thu: c.K || "", crm: c.J || "", bc_lay_hang: c.N || "" };
+    const res = await apiPost({action:"submit", code, email: v("s_email"), rec, filename: `HO SO - ${ten} - ${code}.zip`, zip: u8ToB64(zip)});
+    if (!res.ok) throw new Error(res.error);
+    lastCode = code; $("formmsg").textContent = "";
+    showDone(code, res.phi);
+  } catch(err){ $("formmsg").textContent = "Gửi chưa được: " + (err && err.message || err); btn.disabled = false; }
+};
+function showDone(code, phi){
+  $("done").hidden = false; $("view-form").hidden = true;
+  $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. File sẽ gửi về <b>${esc(v("s_email"))}</b> sau khi trưởng nhóm duyệt. Ghi lại mã này để tra cứu.</div>` +
+    (phi ? `<div class="hint">Quét mã bằng app ngân hàng. Giữ đúng nội dung chuyển khoản <b>${esc(code)}</b> để được duyệt nhanh.</div><div id="pay-qr"></div>` : `<div class="note">Hồ sơ được miễn phí. Chờ duyệt là nhận file.</div>`);
+  if (phi) drawQR($("pay-qr"), CFG, phi, code);
+  window.scrollTo(0, 0);
+}
+async function status(code, el){
+  el.textContent = "Đang tra cứu...";
+  try { const r = await apiGet({action:"status", code}); el.textContent = r.ok ? ("Trạng thái: " + r.status) : r.error; }
+  catch(e){ el.textContent = "Chưa tra cứu được, thử lại."; }
+}
+$("btn-status").onclick = () => status(lastCode, $("statusmsg"));
+$("btn-q").onclick = () => { const c = v("q_code").toUpperCase(); if (c) status(c, $("q_msg")); };
+$("btn-new").onclick = () => { location.reload(); };
+
+/* ---------- khởi động ---------- */
+(async () => {
+  if (!API){ $("access").hidden = false; $("access").className = "note bad"; $("access").textContent = "Trang chưa nối với Google Sheet. Chủ trang cần dán link Apps Script vào file config.js."; return; }
+  try { const r = await apiGet({action:"config"}); if (r.ok){ CFG = r; $("w_manhom").hidden = !r.canMaNhom; } }
+  catch(e){ $("access").hidden = false; $("access").textContent = "Chưa kết nối được Google Sheet. Kiểm tra mạng hoặc báo chủ trang."; }
+})();
+applyLoai();
+</script>
+</body>
+</html>
