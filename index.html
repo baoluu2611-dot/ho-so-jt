@@ -381,6 +381,8 @@ function engine(){
     const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
     py.unpackArchive(bin.buffer, "zip", {extractDir: "/app"});
     py.runPython("import sys; sys.path.insert(0, '/app')\nimport web_entry");
+    /* Địa chỉ tạm trú (cột Z) = địa chỉ lấy hàng. Bỏ đoạn này khi bundle.json mới đã có sẵn */
+    py.runPython("import form_map as _fm\nif not getattr(_fm, '_z_lay_hang', False):\n    _b0 = _fm.build\n    def _b(f, today, _b0=_b0):\n        cols, err = _b0(f, today)\n        p = [str(cols[k]).strip() for k in ('AC', 'AD', 'AE', 'AF') if cols.get(k)]\n        if p: cols['Z'] = ', '.join(p) + ', TP. Hồ Chí Minh'\n        return cols, err\n    _fm.build = _b\n    _fm._z_lay_hang = True");
     st("sẵn sàng");
     return py;
   })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
