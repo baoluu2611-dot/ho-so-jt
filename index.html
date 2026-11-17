@@ -63,6 +63,9 @@ th{color:var(--muted);font-weight:500;white-space:nowrap}
 td.num{font-variant-numeric:tabular-nums}
 .qr{display:grid;justify-items:center;gap:8px;padding:12px;background:#fff;border-radius:12px;width:max-content;max-width:100%;color:#111}
 .stickybar{position:sticky;bottom:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+footer.sig{max-width:920px;margin:0 auto;padding:0 16px 28px;text-align:center;font-size:12px;color:var(--muted)}
+footer.sig b{color:var(--ink);font-weight:600}
+footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent);border-radius:1px;margin-right:6px;vertical-align:-1px}
 [hidden]{display:none !important}
 @media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
 </style>
@@ -216,6 +219,7 @@ td.num{font-variant-numeric:tabular-nums}
   <div class="row"><input id="q_code" placeholder="Mã hồ sơ, vd HS7K2P9Q" style="max-width:260px"><button class="btn" id="btn-q">Tra cứu</button><span id="q_msg" class="hint"></span></div>
 </section>
 </main>
+<footer class="sig"><i></i>Thiết kế &amp; phát triển bởi <b>Lưu Phi Bảo</b> · Trưởng nhóm Kinh doanh J&amp;T Express</footer>
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
