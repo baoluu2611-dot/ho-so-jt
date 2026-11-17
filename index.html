@@ -416,8 +416,9 @@ function vietqr(bin, stk, amount, note){
   let s = tlv("00","01") + tlv("01","12") + tlv("38", acc) + tlv("53","704") + (amount ? tlv("54", String(amount)) : "") + tlv("58","VN") + tlv("62", tlv("08", note)) + "6304";
   return s + crc16(s);
 }
+const QR_ANH = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATgAAAE4AQAAAADnBNLHAAAB3UlEQVR42u2azY7cMAyD+RX74H1z9iAp9qKIk70VHSbAJBPzROiHpoz16vql4IIL7l/DfUmiXt1PGVmSmC8Ofyf+mi1JFrJk+t9aCX8H/oQu2iwqAjGelfD3BrfoK9IcXn6Es2xJNhWA4eVt/nqFYCeyhfeV8Hdz2V7h99d9YcLfffzt0bdiznirgOHvHodAgCt1Babyl14Mf3cXHp3cPxYW31R04u/M37y1gvb6iGkaw9+xf9ilXtx9RO5vstM/nuKP3nR8i0Xvy4m/I+4qfUgSCLsedFMOf6f+W84BsqmHJCogaxv8kbz8fkjdqX9V+fxdQVftcyNS/477typ4ZbpskqbNl9S/+wBkpWrxNrVwGkjvQcLfST9vOzdaOA+Tiv57xDEFsHuHu6dYpnkMfyf/vnRKOX50zLGnb/g75W+TxAyPpm9sdTD83eNK9VW1M+59CNccKfn7kL94WrCWA1j+Hz0LCX+H+W/79XgZMGvnlv777D/PtK2nb1sYQvTz2/MH4wYuTwZXCwl/L88fXMLF3U+GzvD34vyBMGwmfjsMyd+35w/m2AvLf/5g/+rHOOxLSlffcOZHb3Bt9BVpcCVzKWo+Vhdfe7SSdjBzjnFZElePc8nwElxw/yvuD1M3G85pR0i2AAAAAElFTkSuQmCC";
 function drawQR(el, cfg, amount, note){
-  el.innerHTML = ""; if (!cfg?.bin || !cfg?.stk){ el.innerHTML = `<div class="note warn">Chủ trang chưa cài tài khoản nhận phí.</div>`; return; }
+  el.innerHTML = ""; if (!cfg?.bin || !cfg?.stk){ el.innerHTML = `<div class="qr"><img src="${QR_ANH}" width="240" height="240" alt="Mã QR chuyển khoản" style="image-rendering:pixelated"><div style="text-align:center;font-size:13px">Số tiền: <b>${esc(money(amount))}</b><br>Vietcombank · LUU PHI BAO<br>Nội dung: <b>${esc(note)}</b><br><span style="color:#666">Tự gõ số tiền và nội dung khi chuyển</span></div></div>`; return; }
   const box = document.createElement("div"); box.className = "qr"; const q = document.createElement("div"); box.appendChild(q);
   const bank = (BANKS.find(b => b[0] === cfg.bin) || [cfg.bin, cfg.bin])[1];
   const cap = document.createElement("div"); cap.style.textAlign = "center"; cap.style.fontSize = "13px";
