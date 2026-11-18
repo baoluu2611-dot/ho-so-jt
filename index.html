@@ -352,7 +352,7 @@ const NGUON = ["Hội Nhóm MXH","Quét Đường","Đi theo bên cùng ngành",
 const BANKS = [["970436","Vietcombank"],["970415","VietinBank"],["970418","BIDV"],["970405","Agribank"],["970407","Techcombank"],["970422","MB Bank"],["970416","ACB"],["970432","VPBank"],["970423","TPBank"],["970403","Sacombank"],["970441","VIB"],["970437","HDBank"],["970426","MSB"],["970443","SHB"],["970448","OCB"],["970440","SeABank"],["970431","Eximbank"],["970449","LPBank"],["970428","Nam A Bank"],["546034","Cake by VPBank"],["970454","BVBank"],["970452","KienlongBank"],["970412","PVcomBank"],["970425","ABBank"],["970409","Bac A Bank"],["970427","VietA Bank"],["970419","NCB"],["970400","Saigonbank"],["970433","Vietbank"],["970438","BaoViet Bank"]];
 const IMG_ROLES = [
   ["san_pham","Ảnh sản phẩm / kho", false],
-  ["gia_doi_thu","Ảnh giá đối thủ hoặc sản lượng đối thủ (bắt buộc khi phải xin giá)", false],
+  ["gia_doi_thu","Ảnh giá đối thủ hoặc sản lượng đối thủ (bắt buộc khi giá từ 18.000đ trở xuống, hoặc khách cũ ngừng gửi từ 2 tháng)", false],
   ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)", false],
   ["truong_nhom","Hình PIC hoặc trưởng nhóm tại shop (bắt buộc khi giá từ 17.000 trở xuống)", false],
   ["tin_nhan","Tin nhắn chốt với khách", true],
@@ -480,12 +480,25 @@ function lyDoXinGia(){
     cu, sl: soTP(v("p_cu_sl")), ngung: soTP(v("p_cu_ngung")) || 0, cuHcm: digits(v("p_cu_hcm")), cuTinh: digits(v("p_cu_tinh"))});
 }
 const giaThap = () => Math.min(...[digits(v("p_hcm")), digits(v("p_tinh"))].filter(Boolean));
+/* ảnh nào đang bắt buộc theo giá đã nhập */
+function canAnh(){
+  const lo = giaThap(), cu = $("p_khach").value === "cu";
+  return {duyet_gia: lyDoXinGia().length > 0,
+          gia_doi_thu: (isFinite(lo) && lo < 19000) || (cu && (soTP(v("p_cu_ngung")) || 0) >= 2),
+          truong_nhom: isFinite(lo) && lo <= 17000};
+}
 function veXinGia(){
   const cu = $("p_khach").value === "cu"; $("w_khcu").hidden = !cu;
-  const r = lyDoXinGia(), n = $("xg_note");
+  const r = lyDoXinGia(), n = $("xg_note"), need = canAnh();
+  for (const [k, on] of Object.entries(need)){   /* dấu * đỏ cạnh ô ảnh đang bắt buộc */
+    const lab = document.querySelector(`label[for="f_${k}"]`); if (!lab) continue;
+    let st = lab.querySelector(".req"); if (!st){ st = document.createElement("span"); st.className = "req"; st.textContent = " *"; st.style.color = "var(--bad)"; st.style.fontWeight = "700"; lab.appendChild(st); }
+    st.hidden = !on;
+  }
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
-  n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
-  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá/sản lượng đối thủ ở mục 8." + (giaThap() <= 17000 ? " Giá từ 17.000 trở xuống: thêm hình PIC hoặc trưởng nhóm tại shop." : "") : "Không cần xin giá: không cần ảnh xin giá và ảnh đối thủ.";
+  const can = [need.duyet_gia && "tin nhắn xin giá với TPKD", need.gia_doi_thu && "ảnh giá/sản lượng đối thủ", need.truong_nhom && "hình PIC hoặc trưởng nhóm tại shop"].filter(Boolean);
+  n.hidden = false; n.className = "note " + (can.length ? "warn" : "ok");
+  n.textContent = (r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". " : "Không cần xin giá. ") + (can.length ? "Mục 8 bắt buộc (dấu *): " + can.join(", ") + "." : "Không cần ảnh xin giá, ảnh đối thủ.");
 }
 ["p_moc","p_hcm","p_tinh","p_khaigia","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung"].forEach(id => $(id).addEventListener("input", veXinGia));
 ["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
@@ -507,9 +520,10 @@ function localChecks(f){
     if (soTP(v("p_cu_sl")) === null) e.push("Khách cũ: nhập sản lượng gần đây (mục 7)");
     if (soTP(v("p_cu_ngung")) === null) e.push("Khách cũ: nhập số tháng đã ngừng gửi, vẫn gửi đều thì ghi 0 (mục 7)");
   }
-  if (giaThap() <= 17000 && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình PIC hoặc trưởng nhóm tại shop (mục 8)");
-  const xg = lyDoXinGia();
-  if (xg.length && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD và ảnh giá/sản lượng đối thủ (mục 8)");
+  const anh = canAnh(), xg = lyDoXinGia();
+  if (anh.duyet_gia && !images.duyet_gia.length) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD (mục 8)");
+  if (anh.gia_doi_thu && !images.gia_doi_thu.length) e.push("Giá từ 18.000đ trở xuống hoặc khách cũ ngừng gửi: cần ảnh giá/sản lượng đối thủ (mục 8)");
+  if (anh.truong_nhom && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình PIC hoặc trưởng nhóm tại shop (mục 8)");
   return e;
 }
 
