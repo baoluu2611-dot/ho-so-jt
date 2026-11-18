@@ -467,7 +467,7 @@ function xinGia(o){
   const r = [], lo = Math.min(...[o.hcm, o.tinh].filter(Boolean));
   if (o.moc > 2) r.push("mốc kg đầu trên 2kg");
   if (o.nhieuMoc) r.push("nhiều mốc kg");
-  if (isFinite(lo) && lo < 18000) r.push("giá dưới 18.000đ");
+  if (isFinite(lo) && lo < 19000) r.push("giá dưới 19.000đ");
   if (o.kg !== null && o.kg < 0.5) r.push("phí bảo hiểm dưới 0,5%");
   if (o.cu && o.sl !== null && o.sl < 100) r.push("khách cũ đi ít (dưới 100 đơn/tháng)");
   if (o.cu && o.ngung >= 2) r.push(`khách cũ đã ngừng gửi ${o.ngung} tháng`);
