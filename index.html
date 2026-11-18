@@ -492,7 +492,7 @@ function veXinGia(){
   const r = lyDoXinGia(), n = $("xg_note"), need = canAnh();
   for (const [k, on] of Object.entries(need)){   /* dấu * đỏ cạnh ô ảnh đang bắt buộc */
     const lab = document.querySelector(`label[for="f_${k}"]`); if (!lab) continue;
-    let st = lab.querySelector(".req"); if (!st){ st = document.createElement("span"); st.className = "req"; st.textContent = " *"; st.style.color = "var(--bad)"; st.style.fontWeight = "700"; lab.appendChild(st); }
+    let st = lab.querySelector(".req"); if (!st){ st = document.createElement("span"); st.className = "req"; st.textContent = " *"; st.style.color = "var(--bad)"; st.style.fontWeight = "700"; (lab.querySelector("b") || lab).appendChild(st); }
     st.hidden = !on;
   }
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
