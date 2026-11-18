@@ -257,7 +257,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <label class="row" id="w_xnhd" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_hd" style="width:auto"> Tôi đã đối chiếu hợp đồng gốc với file tạo mã: số HĐ, tên, số tài khoản, địa chỉ, giá đều khớp.</label>
   </section>
 
-  <div id="pl_main" style="display:grid;gap:16px" hidden>
+  <div id="pl_main" style="display:grid;gap:16px">
   <section class="card">
     <h2><span class="n">4</span>Thông tin phụ lục</h2>
     <div class="grid">
@@ -773,10 +773,10 @@ function veBang(){
     const hc = /50/.test(c.AY || "") ? "50% cước" : (c.AY ? "Miễn phí" : "");
     rows.push(["Phí chuyển hoàn", hc, `<select id="pc_hoan"><option value="">Giữ như cũ</option><option value="mien"${giu.pc_hoan === "mien" ? " selected" : ""}>Miễn phí</option><option value="50"${giu.pc_hoan === "50" ? " selected" : ""}>50% cước</option></select>`]);
   }
-  tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${esc(tu || "(trống)")}</td><td>${sang}</td></tr>`).join("");
+  tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${esc(tu || (PL ? "(trống)" : "(tải file tạo mã ở mục 3)"))}</td><td>${sang}</td></tr>`).join("");
   $("pl_bang").hidden = !rows.length; $("pl_trong").hidden = !!rows.length;
   $("w_pltk").hidden = !ch.includes("bank");
-  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x]).join(" + ") : "";
+  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x]).join(" + ") + ". Nhập thông tin mới ở mục 5 bên dưới." + (PL ? "" : " Cột \"Từ\" tự hiện sau khi tải file tạo mã ở mục 3.") : "";
   veAnhPL(); plInvalidate();
 }
 const fmtVN = n => Number(n || 0).toLocaleString("vi-VN");
@@ -823,7 +823,7 @@ function veThongTin(){
 }
 $("pl_xlsx").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  const msg = $("pl_xlsxmsg"); PL = null; plOld = null; $("pl_main").hidden = true; $("pl_info").hidden = true;
+  const msg = $("pl_xlsxmsg"); PL = null; plOld = null; $("pl_info").hidden = true; veBang();
   try {
     if (!/\.xlsx$/i.test(f.name)) throw new Error("phải là file .xlsx (file tạo mã)");
     msg.textContent = "Đang đọc file tạo mã...";
