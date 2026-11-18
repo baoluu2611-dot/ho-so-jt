@@ -534,6 +534,8 @@ function engine(){
     py.runPython("import os, fill_contract as _fc\nif not hasattr(_fc, 'phan_trang'):\n    exec(compile('def phan_trang(path):\\n    \"\"\"Chỉ sửa PHÂN TRANG cho giống bản gốc, KHÔNG đổi chữ / số / font:\\n    1) Khối chữ ký (BÊN CUNG ỨNG / BÊN SỬ DỤNG + chỗ ký) liền 1 khối, không bị cắt qua 2 trang.\\n    2) Hợp đồng: Phụ lục 02, 03 luôn bắt đầu đầu trang mới (mẫu gốc dùng dòng trống để đẩy trang,\\n       điền thông tin dài/ngắn là bị lệch) -> bỏ các dòng TRỐNG ngay trước tiêu đề phụ lục, thêm \"sang trang trước đoạn\".\\n    Tự kiểm tra: toàn bộ chữ giữ nguyên y hệt (chỉ bớt dòng trống), số ngắt section giữ nguyên. Lệch -> không ghi.\"\"\"\\n    import zipfile, copy, io, re\\n    from lxml import etree\\n    W = \\'{http://schemas.openxmlformats.org/wordprocessingml/2006/main}\\'\\n    tx = lambda e: \\'\\'.join(t.text or \\'\\' for t in e.iter(W + \\'t\\'))\\n    zin = zipfile.ZipFile(path)\\n    root = etree.fromstring(zin.read(\\'word/document.xml\\'))\\n    body = root.find(W + \\'body\\')\\n    chu_truoc = [t for t in (tx(p) for p in root.iter(W + \\'p\\')) if t.strip()]\\n    sect_truoc = len(list(root.iter(W + \\'sectPr\\')))\\n    ORDER = [\\'pStyle\\', \\'keepNext\\', \\'keepLines\\', \\'pageBreakBefore\\']\\n    def dat(p, ten):\\n        ppr = p.find(W + \\'pPr\\')\\n        if ppr is None:\\n            ppr = etree.Element(W + \\'pPr\\'); p.insert(0, ppr)\\n        if ppr.find(W + ten) is not None:\\n            return\\n        truoc = ORDER[:ORDER.index(ten)]\\n        pos = 0\\n        for i, k in enumerate(ppr):\\n            if etree.QName(k).localname in truoc:\\n                pos = i + 1\\n        ppr.insert(pos, etree.Element(W + ten))\\n    ghi = []\\n    # 1) khối chữ ký\\n    sig = None\\n    for tbl in body.findall(W + \\'tbl\\'):\\n        for tr in tbl.findall(W + \\'tr\\'):\\n            cells = [tx(tc) for tc in tr.findall(W + \\'tc\\')]\\n            if len(cells) >= 2 and any(\\'BÊN CUNG ỨNG DỊCH VỤ\\' in c for c in cells) and any(\\'BÊN SỬ DỤNG DỊCH VỤ\\' in c for c in cells):\\n                sig = tbl\\n    if sig is not None:\\n        rows = sig.findall(W + \\'tr\\')\\n        for i, tr in enumerate(rows):\\n            trpr = tr.find(W + \\'trPr\\')\\n            if trpr is None:\\n                trpr = etree.Element(W + \\'trPr\\')\\n                pex = tr.find(W + \\'tblPrEx\\')\\n                tr.insert(list(tr).index(pex) + 1 if pex is not None else 0, trpr)\\n            if trpr.find(W + \\'cantSplit\\') is None:\\n                etree.SubElement(trpr, W + \\'cantSplit\\')\\n            if i < len(rows) - 1:\\n                for p in tr.iter(W + \\'p\\'):\\n                    dat(p, \\'keepNext\\')\\n        x, n = sig.getprevious(), 0\\n        while x is not None and x.tag == W + \\'p\\' and n < 4:\\n            dat(x, \\'keepNext\\'); n += 1\\n            if tx(x).strip():\\n                break\\n            x = x.getprevious()\\n        ghi.append(\\'khối chữ ký liền 1 khối\\')\\n    # 2) phụ lục 02, 03... của hợp đồng: luôn sang trang mới\\n    trong = lambda p: (p.tag == W + \\'p\\' and not tx(p).strip() and p.find(\\'.//\\' + W + \\'sectPr\\') is None\\n                       and p.find(\\'.//\\' + W + \\'br\\') is None and p.find(\\'.//\\' + W + \\'drawing\\') is None\\n                       and p.find(\\'.//\\' + W + \\'pict\\') is None and p.find(\\'.//\\' + W + \\'object\\') is None)\\n    for p in list(body.findall(W + \\'p\\')):\\n        if not re.fullmatch(r\\'PHỤ LỤC 0[2-9]\\', tx(p).strip()):\\n            continue\\n        x = p.getprevious()\\n        while x is not None and x.tag == W + \\'p\\' and not tx(x).strip():\\n            x = x.getprevious()\\n        if x is None or not re.match(r\\'\\\\[HẾT PHỤ LỤC 0\\\\d\\\\]\\', tx(x).strip()):\\n            continue   # chỉ xử lý đúng chỗ \"[HẾT PHỤ LỤC 0x]\" ... \"PHỤ LỤC 0y\"\\n        bo = 0\\n        y = p.getprevious()\\n        while y is not None and y is not x:\\n            z = y.getprevious()\\n            if trong(y):\\n                body.remove(y); bo += 1\\n            y = z\\n        dat(p, \\'pageBreakBefore\\')\\n        ghi.append(tx(p).strip() + \\' sang trang mới (bỏ \\' + str(bo) + \\' dòng trống)\\')\\n    if not ghi:\\n        return \\'giữ nguyên\\'\\n    chu_sau = [t for t in (tx(p) for p in root.iter(W + \\'p\\')) if t.strip()]\\n    if chu_truoc != chu_sau or len(list(root.iter(W + \\'sectPr\\'))) != sect_truoc:\\n        raise ValueError(\\'phan_trang: chữ hoặc ngắt section bị đổi — không ghi\\')\\n    new = etree.tostring(root, xml_declaration=True, encoding=\\'UTF-8\\', standalone=True)\\n    buf = io.BytesIO()\\n    with zipfile.ZipFile(buf, \\'w\\') as zout:\\n        for info in zin.infolist():\\n            zout.writestr(copy.copy(info), new if info.filename == \\'word/document.xml\\' else zin.read(info), compress_type=info.compress_type)\\n    zin.close()\\n    open(path, \\'wb\\').write(buf.getvalue())\\n    return \\'; \\'.join(ghi)\\n', 'phan_trang', 'exec'), _fc.__dict__)\n    def _fc_main(src, ops_path, dst, report_path, _m0=_fc.main):\n        try:\n            _m0(src, ops_path, dst, report_path); code = 0\n        except SystemExit as e:\n            code = e.code\n        if code in (0, None) and os.path.exists(dst):\n            try: msg = _fc.phan_trang(dst)\n            except Exception as ex: msg = 'giữ nguyên như mẫu (' + str(ex)[:80] + ')'\n            try: open(report_path, 'a', encoding='utf8').write('\\n\\nPHÂN TRANG: ' + msg)\n            except Exception: pass\n        raise SystemExit(code)\n    _fc.main = _fc_main");
     /* Cách ghi theo Team HĐ: phí khai giá 0.5% (không chấm…), nơi cấp CCCD viết hoa từng chữ; đọc được HĐ Word ghi 0.5% (bộ tạo file cũ chưa có thì vá ở đây) */
     py.runPython("import re as _re, json as _json, zipfile as _zf, build_from_excel as _bfe, form_map as _fm, pl as _pl\nif (_bfe.pct_text(0.005) or '').startswith('0,'):\n    def _pct(w, _p0=_bfe.pct_text):\n        s = _p0(w)\n        return s.replace('0,', '0.', 1).replace('không phẩy', 'không chấm') if s and s.startswith('0,') else s\n    _bfe.pct_text = _pct\nif not getattr(_fm, '_y_hoa', False):\n    def _fb(f, today, _b0=_fm.build):\n        cols, err = _b0(f, today)\n        if cols.get('Y') == 'Cục Cảnh sát Quản lý hành chính về trật tự xã hội':\n            cols['Y'] = 'Cục Cảnh Sát Quản Lý Hành Chính Về Trật Tự Xã Hội'\n        return cols, err\n    _fm.build = _fb\n    _fm._y_hoa = True\nif not getattr(_pl, '_kg_dot', False):\n    def _dw(path, _d0=_pl.doc_word):\n        r = _d0(path)\n        d = _json.loads(r)\n        if d.get('ok') and not d['hien_tai'].get('AW'):\n            try:\n                from lxml import etree as _et\n                W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'\n                root = _et.fromstring(_zf.ZipFile(path).read('word/document.xml'))\n                for tr in root.iter(W + 'tr'):\n                    cs = [''.join(t.text or '' for t in tc.iter(W + 't')).strip() for tc in tr.findall(W + 'tc')]\n                    if len(cs) >= 2 and cs[0].startswith('Phí khai giá'):\n                        mm = _re.match(r'(\\d+)(?:[,.](\\d))?%', cs[-1])\n                        if mm:\n                            d['hien_tai']['AW'] = str(round(float(mm.group(1) + '.' + (mm.group(2) or '0')) / 100, 6))\n                            r = _json.dumps(d, ensure_ascii=False)\n                        break\n            except Exception:\n                pass\n        return r\n    _pl.doc_word = _dw\n    _pl._kg_dot = True");
+    /* Phụ lục nối tiếp: đọc file tạo mã trả thêm dòng HĐ gốc + lịch sử các phụ lục (để đối chiếu HĐ gốc đúng, hiện các lần đổi) */
+    py.runPython("import json as _json, openpyxl as _ox, pl as _pl\nif not getattr(_pl, '_co_goc', False):\n    def _dfc(path, _d0=_pl.doc_file_cu):\n        \"\"\"Như cũ + \"goc\" (dòng hợp đồng gốc, chưa tính phụ lục) + \"lich_su\" (mỗi phụ lục đã đổi cột nào, cũ -> mới).\"\"\"\n        r = _d0(path)\n        d = _json.loads(r)\n        if not d.get('ok') or 'goc' in d:\n            return r\n        try:\n            rows = _pl._rows(_ox.load_workbook(path))\n            hds = [x for x in rows if not _pl.RE_TAG.match(_pl._v(x[2]['S']))]\n            hd = hds[-1][2]\n            goc = {c: _pl._v(v) for c, v in hd.items()}\n            cur, ls = dict(goc), []\n            for sh, rr, row in rows:\n                m = _pl.RE_TAG.match(_pl._v(row['S']))\n                if not m or _pl._norm(m.group(3)) != _pl._norm(d['hd_no']):\n                    continue\n                doi = []\n                for c in _pl.GOP:\n                    v = _pl._v(row.get(c))\n                    if v and v != cur.get(c, ''):\n                        doi.append({'c': c, 'cu': cur.get(c, ''), 'moi': v}); cur[c] = v\n                ls.append({'tag': m.group(1) + m.group(2), 'ngay': _pl._v(row.get('F')), 'doi': doi})\n            d['goc'] = goc\n            d['lich_su'] = ls\n        except Exception as e:\n            d['goc_loi'] = str(e)[:120]\n        return _json.dumps(d, ensure_ascii=False)\n    _pl.doc_file_cu = _dfc\n    _pl._co_goc = True");
     st("sẵn sàng");
     return py;
   })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
@@ -673,11 +675,15 @@ $("btn-send").onclick = async () => {
     const res = await apiPost({action:"submit", code, email: v("s_email"), rec, filename: `HO SO - ${ten} - ${code}.zip`, zip: u8ToB64(zip)});
     if (!res.ok) throw new Error(res.error);
     lastCode = code; $("formmsg").textContent = "";
-    showDone(code, res.phi);
+    showDone(code, res.phi, res.tu_duyet);
   } catch(err){ $("formmsg").textContent = "Gửi chưa được: " + (err && err.message || err); btn.disabled = false; }
 };
-function showDone(code, phi){
+function showDone(code, phi, tu){
   $("done").hidden = false; $("view-form").hidden = true; $("view-pl").hidden = true; $("view-sale").hidden = true; document.querySelector("header nav").hidden = true;
+  if (tu){   // mã NV được tự duyệt: Apps Script đã gửi file luôn
+    $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. Đã gửi file về <b>${esc(v("s_email"))}</b> (mã NV được tự duyệt). Mở mail kiểm tra lại thông tin trước khi nộp. Ghi lại mã này để tra cứu.</div>`;
+    window.scrollTo(0, 0); return;
+  }
   $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. File sẽ gửi về <b>${esc(v("s_email"))}</b> sau khi trưởng nhóm duyệt. Ghi lại mã này để tra cứu.</div>` +
     (phi ? `<div class="hint">Quét mã bằng app ngân hàng. Giữ đúng nội dung chuyển khoản <b>${esc(code)}</b> để được duyệt nhanh.</div><div id="pay-qr"></div>` : `<div class="note">Hồ sơ được miễn phí. Chờ duyệt là nhận file.</div>`);
   if (phi) drawQR($("pay-qr"), CFG, phi, code);
@@ -744,6 +750,8 @@ function tuAI(d){
 /* ---------- bước 2: khách muốn đổi gì -> phụ lục nào ---------- */
 const DOI_PL = {sdt: "PLA", email: "PLA", diachi: "PLA", bank: "PLA", ds: "PLB", gia: "PLC", phi: "PLC"};
 const TEN_PL = {PLA: "PLA (đổi thông tin)", PLB: "PLB (đổi lịch đối soát)", PLC: "PLC (đổi giá, phí)"};
+/* số phụ lục lần này: đếm phụ lục cùng loại đã có trong file tạo mã (PLA -> PLA.1 -> PLA.2 ...) */
+const tagMoi = k => { const n = ((PL && PL.da_co) || []).filter(t => t.split(".")[0] === k).length; return n ? `${k}.${n}` : k; };
 const doiChon = () => [...document.querySelectorAll("#pl_doi input:checked")].map(x => x.value);
 const plTags = () => [...new Set(doiChon().map(k => DOI_PL[k]))].sort();
 const HOAN_50 = "50% (năm mươi phần trăm) cước vận chuyển";
@@ -782,7 +790,7 @@ function veBang(){
   tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${tu}</td><td>${sang}</td></tr>`).join("");
   $("pl_bang").hidden = !rows.length; $("pl_trong").hidden = !!rows.length;
   $("w_pltk").hidden = !ch.includes("bank");
-  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x]).join(" + ") + ". Nhập thông tin cũ và mới ở mục 5 bên dưới." : "";
+  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x].replace(x, tagMoi(x))).join(" + ") + ". Nhập thông tin cũ và mới ở mục 5 bên dưới." : "";
   veAnhPL(); veTu(); plInvalidate();
 }
 const fmtVN = n => Number(n || 0).toLocaleString("vi-VN");
@@ -824,7 +832,7 @@ function veTu(){
   if (!lech.length){ box.hidden = true; w.hidden = true; $("xn_tu").checked = false; return; }
   box.hidden = false; box.className = "note warn";
   box.innerHTML = `<b>Thông tin cũ bạn nhập lệch file tạo mã ${lech.length} chỗ:</b><ul>` + lech.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" +
-    ((PL.da_co || []).length ? `Khách đã có ${esc(PL.da_co.join(", "))} nên lệch ở mục đã đổi bằng phụ lục là bình thường. ` : "") + "Xem lại hợp đồng / phụ lục gốc. Sửa cho đúng, hoặc nếu chắc chắn đúng thì tick xác nhận bên dưới.";
+    ((PL.da_co || []).length ? `File tạo mã đã tính các phụ lục ${esc(PL.da_co.join(", "))}: cột "Đang dùng" phải là thông tin sau phụ lục gần nhất. ` : "") + "Xem lại hợp đồng / phụ lục gần nhất. Sửa cho đúng, hoặc nếu chắc chắn đúng thì tick xác nhận bên dưới.";
   w.hidden = false;
 }
 
@@ -863,7 +871,18 @@ function veThongTin(){
   box.hidden = false; box.className = "note " + (het ? "bad" : "ok");
   box.innerHTML = `Khách: <b>${esc(r.canhan ? (c.U || c.T) : c.T)}</b> (${r.canhan ? "cá nhân" : "công ty / hộ KD"})<br>Số HĐ: <b>${esc(r.hd_no || "(không đọc được)")}</b> · Ngày ký: <b>${esc(r.ngay_hd || "?")}</b>` +
     (han ? ` · hết hạn ${esc(han.toLocaleDateString("vi-VN"))}` + (het ? " — <b>đã hết hạn, phải làm hợp đồng mới</b>" : "") : "") +
-    `<br>Phụ lục đã có: <b>${esc((r.da_co || []).join(", ") || "chưa có")}</b>`;
+    `<br>Phụ lục đã có: <b>${esc((r.da_co || []).join(", ") || "chưa có")}</b>` + lichSuHtml(r);
+}
+/* các phụ lục trước đã đổi gì (đọc từ file tạo mã): để sale biết thông tin mới nhất */
+const TEN_COT = {AI: "SĐT", AN: "Gmail", AH: "Địa chỉ", AJ: "Chủ TK", AK: "Số TK", AL: "Ngân hàng", AZ: "Lịch đối soát", AU: "Bảng giá", AW: "Phí khai giá", AY: "Phí chuyển hoàn", AX: "Phí thu hộ", AV: "Chiết khấu", AO: "Sản lượng"};
+function lichSuHtml(r){
+  const ls = (r.lich_su || []).filter(x => (x.doi || []).some(d => TEN_COT[d.c]));
+  if (!ls.length) return "";
+  const gt = (c, x) => c === "AW" ? (pctTxt(x) ? pctTxt(x) + "%" : x) : c === "AU" ? String(x || "").split("\n").join(" | ") : x;
+  const ngan = x => { x = String(x || "(trống)"); return x.length > 70 ? x.slice(0, 70) + "…" : x; };
+  return `<div style="margin-top:8px">Các phụ lục trước đã đổi (theo file tạo mã):<ul style="margin:4px 0 0">` +
+    ls.map(x => `<li><b>${esc(x.tag)}</b>${x.ngay ? " (" + esc(x.ngay) + ")" : ""}: ` +
+      x.doi.filter(d => TEN_COT[d.c]).map(d => `${TEN_COT[d.c]} ${esc(ngan(gt(d.c, d.cu)))} → <b>${esc(ngan(gt(d.c, d.moi)))}</b>`).join("; ") + "</li>").join("") + "</ul></div>";
 }
 $("pl_xlsx").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
@@ -884,8 +903,9 @@ $("pl_xlsx").onchange = async e => {
 
 /* ---------- bước 3: hợp đồng cũ -> đối chiếu với file tạo mã ---------- */
 const chuan = s => unacc(s).toLowerCase().replace(/[^a-z0-9]/g, "");
-function soSanh(a, b){   // a: file tạo mã, b: hợp đồng
-  const A = a.hien_tai || {}, B = b.hien_tai || {}, lech = [];
+function soSanh(a, b){   // a: file tạo mã, b: hợp đồng gốc
+  /* hợp đồng gốc so với DÒNG HỢP ĐỒNG GỐC trong file tạo mã (chưa tính phụ lục), không so với thông tin mới nhất */
+  const A = a.goc || a.hien_tai || {}, B = b.hien_tai || {}, lech = [];
   const cmp = (ten, x, y, kieu) => {
     if (!String(x || "").trim() || !String(y || "").trim()) return;
     const p = kieu === "so" ? String(x).replace(/\D/g, "") : chuan(x), q = kieu === "so" ? String(y).replace(/\D/g, "") : chuan(y);
@@ -903,18 +923,34 @@ function soSanh(a, b){   // a: file tạo mã, b: hợp đồng
   return lech;
 }
 const bfeKey = v => { const u = unacc(v).toUpperCase(); if (/THANG/.test(u)) return "T"; const m = u.match(/0?([235])\s*LAN/); return m ? m[1] : u; };
+function lev(a, b){   // số ký tự khác nhau giữa 2 chuỗi
+  let p = Array.from({length: b.length + 1}, (_, j) => j);
+  for (let i = 1; i <= a.length; i++){ const q = [i]; for (let j = 1; j <= b.length; j++) q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = q; }
+  return p[b.length];
+}
+function soHDKhac(){   // CHẶN CỨNG: hợp đồng tải lên có số HĐ khác file tạo mã (tải nhầm HĐ khách khác). Tick xác nhận không qua được
+  if (!PL || !plHD || !plHD.data) return "";
+  const a = chuan(PL.hd_no), b = chuan(plHD.data.hd_no);
+  if (!a || !b || a === b) return "";
+  const [ngan, dai] = a.length <= b.length ? [a, b] : [b, a];
+  if (ngan.length > 12 && dai.includes(ngan)) return "";                 // 1 bên ghi thiếu đuôi "- CN hcm - hcm"
+  if (plHD.loai === "pdf" && lev(a, b) <= 2) return "";                  // AI đọc PDF có thể sai 1–2 ký tự
+  return `Số HĐ trên hợp đồng tải lên (${plHD.data.hd_no}) khác số HĐ trong file tạo mã (${PL.hd_no}). Có thể tải nhầm hợp đồng hoặc file tạo mã của khách khác: tải lại cho đúng (mục 3)`;
+}
 function soHD(){
   const box = $("pl_cmp"), w = $("w_xnhd");
   if (!plHD){ box.hidden = true; w.hidden = true; return; }
   if (plHD.loi){ box.hidden = false; box.className = "note warn"; box.textContent = "Chưa đọc được hợp đồng để đối chiếu (" + plHD.loi + "). Tự đối chiếu với HĐ gốc rồi tick xác nhận bên dưới."; w.hidden = false; return; }
   if (!PL){ box.hidden = false; box.className = "note"; box.textContent = "Đã nhận hợp đồng. Tải thêm file tạo mã để web đối chiếu."; w.hidden = true; return; }
+  const khac = soHDKhac();
+  if (khac){ box.hidden = false; box.className = "note bad"; box.textContent = khac; w.hidden = true; $("xn_hd").checked = false; return; }
   const lech = soSanh(PL, plHD.data), ai = plHD.loai === "pdf";
   box.hidden = false;
   if (!lech.length){ box.className = "note ok"; box.textContent = ai ? "AI đọc hợp đồng PDF: khớp với file tạo mã. AI vẫn có thể đọc sót, tự xem lại rồi tick xác nhận." : "Hợp đồng Word khớp với file tạo mã."; }
   else {
     box.className = "note warn";
     box.innerHTML = `<b>Hợp đồng và file tạo mã lệch ${lech.length} chỗ</b>` + (ai ? " (AI đọc PDF, có thể do AI đọc sai)" : "") + ":<ul>" + lech.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" +
-      ((PL.da_co || []).length ? `Khách đã có ${esc(PL.da_co.join(", "))} nên lệch ở mục đã đổi bằng phụ lục là bình thường. ` : "") + "Kiểm tra lại với HĐ gốc rồi tick xác nhận bên dưới.";
+      (!PL.goc && (PL.da_co || []).length ? `Khách đã có ${esc(PL.da_co.join(", "))} nên lệch ở mục đã đổi bằng phụ lục là bình thường. ` : "") + "Kiểm tra lại với HĐ gốc rồi tick xác nhận bên dưới.";
   }
   w.hidden = !(ai || lech.length); if (w.hidden) $("xn_hd").checked = true; else $("xn_hd").checked = false;
 }
@@ -990,6 +1026,7 @@ function plLocal(q){
   if (CFG && CFG.canMaNhom && !v("s_manhom")) e.push("Thiếu mã nhóm (mục 1)");
   if (!ch.length) e.push("Chưa chọn khách muốn đổi gì (mục 2)");
   if (!plHD) e.push("Chưa tải hợp đồng cũ (mục 3)");
+  else if (soHDKhac()) e.push(soHDKhac());
   else if (!$("w_xnhd").hidden && !$("xn_hd").checked) e.push("Chưa tick đã đối chiếu hợp đồng gốc với file tạo mã (mục 3)");
   if (!q.ma_kh) e.push("Chưa gõ mã KH (mục 4)");
   else if (PL.ma_kh && PL.ma_kh !== q.ma_kh) e.push(`Mã KH gõ (${q.ma_kh}) khác mã trong file tạo mã (${PL.ma_kh}). Kiểm tra lại trên hệ thống J&T`);
@@ -1023,12 +1060,30 @@ async function plRun(code){
   try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: anh, xlsx: [...(xl.mc || []), ...(xl.dg || [])]}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
   finally { m.destroy(); }
 }
+/* chặn trùng số: hỏi Google Sheet các phụ lục đã gửi qua web cho mã KH này */
+let plGui = null;
+async function layDaGui(mk){ const r = await apiGet({action: "pldagui", ma_kh: mk}); if (!r.ok) throw new Error(r.error || "lỗi"); return {ma_kh: mk, ds: r.ds || []}; }
+function loiDaGui(){
+  if (!plGui || !PL) return [];
+  const co = PL.da_co || [], e = [];
+  const cho = plGui.ds.filter(x => !x.xong && x.tags.some(t => !co.includes(t)));
+  if (cho.length) e.push("Mã KH này còn phụ lục " + cho.map(x => x.tags.join("+") + " (gửi " + x.ngay + ")").join(", ") + " đang chờ duyệt. Đợi trưởng nhóm duyệt xong, tải file tạo mã mới trong mail rồi làm tiếp (mục 3)");
+  const thieu = plGui.ds.filter(x => x.xong).flatMap(x => x.tags.filter(t => !co.includes(t)).map(t => t + " (gửi " + x.ngay + ")"));
+  if (thieu.length) e.push("File tạo mã chưa phải bản mới nhất: thiếu " + thieu.join(", ") + ". Tải file tạo mã trong mail của lần phụ lục gần nhất (mục 3)");
+  return e;
+}
 $("pl_check").onclick = async () => {
   const box = $("pl_checkout"); box.hidden = false;
   if (!PL){ plErr(["Chưa tải file tạo mã cũ (mục 3)"]); return; }
   box.className = "note"; box.textContent = "Đang kiểm tra...";
   store.set("jt-sale", {s_ten:v("s_ten"), s_msnv:v("s_msnv"), s_khu:v("s_khu"), s_sdt:v("s_sdt"), s_bc:v("s_bc"), s_email:v("s_email"), s_manhom:v("s_manhom")});
-  const q = plReq(), e1 = plLocal(q);
+  const q = plReq();
+  let eGui = [];
+  if (API && /^\d{3}[A-Z]{2}\d{3,}$/.test(q.ma_kh)){
+    try { plGui = await layDaGui(q.ma_kh); eGui = loiDaGui(); }
+    catch(err){ eGui = ["Chưa kiểm tra được các phụ lục đã gửi cho mã KH này (lỗi mạng). Bấm Kiểm tra lại"]; }
+  }
+  const e1 = [...plLocal(q), ...eGui];
   let r = {ok: true};
   if (q.loai_doi.length){
     try { r = await plRun("PLTEST"); } catch(err){ box.className = "note bad"; box.textContent = "Không tải được bộ tạo file. Kiểm tra mạng rồi bấm lại."; return; }
@@ -1066,7 +1121,7 @@ $("pl_send").onclick = async () => {
     const res = await apiPost({action: "submit", code, email: v("s_email"), rec, filename: `PHU LUC ${tags} - ${ten} - ${code}.zip`, zip: u8ToB64(zip)});
     if (!res.ok) throw new Error(res.error);
     lastCode = code; $("pl_msg").textContent = "";
-    showDone(code, res.phi);
+    showDone(code, res.phi, res.tu_duyet);
   } catch(err){ $("pl_msg").textContent = "Gửi chưa được: " + (err && err.message || err); btn.disabled = false; }
 };
 
