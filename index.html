@@ -270,9 +270,11 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 
   <section class="card">
     <h2><span class="n">5</span>Đổi từ → sang</h2>
-    <div class="hint">Cột "Từ" web lấy từ file tạo mã cũ. Chỉ nhập cột "Sang".</div>
+    <div class="hint">Nhập tay cả 2 cột. Cột "Đang dùng": xem trên hợp đồng / phụ lục gần nhất của khách. Cột "Đổi sang": thông tin mới. Web đối chiếu cột "Đang dùng" với file tạo mã cũ.</div>
     <div id="pl_trong" class="note">Chưa chọn mục cần đổi ở mục 2.</div>
-    <div class="tablewrap"><table id="pl_bang" hidden><thead><tr><th>Mục</th><th>Từ</th><th>Sang</th></tr></thead><tbody id="pl_rows"></tbody></table></div>
+    <div class="tablewrap"><table id="pl_bang" hidden><thead><tr><th>Mục</th><th>Đang dùng (cũ)</th><th>Đổi sang (mới)</th></tr></thead><tbody id="pl_rows"></tbody></table></div>
+    <div id="pl_tucmp" class="note" hidden></div>
+    <label class="row" id="w_xntu" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_tu" style="width:auto"> Tôi đã xem lại hợp đồng / phụ lục gốc: thông tin cũ tôi nhập là đúng.</label>
     <div class="chips" id="w_pltk" hidden><label><input type="checkbox" id="xn_pltk">Đã kiểm tra số tài khoản và tên chủ tài khoản mới</label></div>
     <div id="pl_xg" class="note" hidden></div>
   </section>
@@ -750,45 +752,81 @@ function veBang(){
   const giu = {}; tb.querySelectorAll("input,select").forEach(el => giu[el.id] = el.value);
   const g = docGia(c.AU), rows = [];
   const o = (id, ph, mode) => `<input id="${id}" value="${esc(giu[id] ?? "")}"${ph ? ` placeholder="${esc(ph)}"` : ""}${mode ? ` inputmode="${mode}"` : ""}>`;
-  if (ch.includes("sdt")) rows.push(["SĐT", c.AI, o("pa_AI", "10 số", "tel")]);
-  if (ch.includes("email")) rows.push(["Gmail đối soát", c.AN, o("pa_AN", "...@gmail.com", "email")]);
-  if (ch.includes("diachi")) rows.push(["Địa chỉ thường trú / trụ sở", c.AH, o("pa_AH", "chép y chang giấy tờ mới")]);
+  const sel = (id, opt) => `<select id="${id}">${opt.map(([v, t]) => `<option value="${esc(v)}"${(giu[id] ?? "") === v ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
+  const DS = [["02 Lần / Tuần", "2 lần/tuần (T3, T5)"], ["03 Lần / Tuần", "3 lần/tuần (T2, T4, T6)"], ["05 Lần / Tuần", "5 lần/tuần (T2–T6)"], ["1 Lần / Tháng", "1 lần/tháng"]];
+  if (ch.includes("sdt")) rows.push(["SĐT", o("tu_AI", "SĐT cũ", "tel"), o("pa_AI", "SĐT mới", "tel")]);
+  if (ch.includes("email")) rows.push(["Gmail đối soát", o("tu_AN", "Gmail cũ", "email"), o("pa_AN", "...@gmail.com", "email")]);
+  if (ch.includes("diachi")) rows.push(["Địa chỉ thường trú / trụ sở", o("tu_AH", "địa chỉ cũ trên HĐ"), o("pa_AH", "chép y chang giấy tờ mới")]);
   if (ch.includes("bank")){
-    rows.push(["Chủ tài khoản", c.AJ, o("pa_AJ", "IN HOA, không dấu")]);
-    rows.push(["Số tài khoản", c.AK, o("pa_AK", "", "numeric")]);
-    rows.push(["Ngân hàng + chi nhánh", c.AL, o("pa_AL")]);
+    rows.push(["Chủ tài khoản", o("tu_AJ", "chủ TK cũ"), o("pa_AJ", "IN HOA, không dấu")]);
+    rows.push(["Số tài khoản", o("tu_AK", "số TK cũ", "numeric"), o("pa_AK", "số TK mới", "numeric")]);
+    rows.push(["Ngân hàng + chi nhánh", o("tu_AL", "ngân hàng cũ"), o("pa_AL", "ngân hàng mới")]);
   }
-  if (ch.includes("ds")){
-    const opt = [["", "Chọn lịch mới"], ["02 Lần / Tuần", "2 lần/tuần (T3, T5)"], ["03 Lần / Tuần", "3 lần/tuần (T2, T4, T6)"], ["05 Lần / Tuần", "5 lần/tuần (T2–T6)"], ["1 Lần / Tháng", "1 lần/tháng"]];
-    rows.push(["Lịch đối soát", c.AZ, `<select id="pb_AZ">${opt.map(([v, t]) => `<option value="${esc(v)}"${(giu.pb_AZ ?? "") === v ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`]);
-  }
+  if (ch.includes("ds")) rows.push(["Lịch đối soát", sel("tu_AZ", [["", "Chọn lịch cũ"], ...DS]), sel("pb_AZ", [["", "Chọn lịch mới"], ...DS])]);
   if (ch.includes("gia")){
-    rows.push(["Mốc kg đầu", g.moc ? g.moc + "kg" : "", o("pc_moc", g.moc || "2", "decimal")]);
-    rows.push(["Giá HCM → HCM", g.hcm ? fmtVN(g.hcm) : "", o("pc_hcm", "", "numeric")]);
-    rows.push(["Giá HCM → tỉnh", g.tinh ? fmtVN(g.tinh) : "", o("pc_tinh", "", "numeric")]);
-    rows.push(["Mỗi kg tiếp theo", g.inc ? "+" + fmtVN(g.inc) : "", o("pc_inc", g.inc || "5000", "numeric")]);
+    rows.push(["Mốc kg đầu", o("tu_moc", "vd 2", "decimal"), o("pc_moc", "vd 2", "decimal")]);
+    rows.push(["Giá HCM → HCM", o("tu_hcm", "giá cũ", "numeric"), o("pc_hcm", "giá mới", "numeric")]);
+    rows.push(["Giá HCM → tỉnh", o("tu_tinh", "giá cũ", "numeric"), o("pc_tinh", "giá mới", "numeric")]);
+    rows.push(["Mỗi kg tiếp theo", o("tu_inc", "vd 5000", "numeric"), o("pc_inc", "vd 5000", "numeric")]);
   }
   if (ch.includes("phi")){
-    rows.push(["Phí khai giá (%)", pctTxt(c.AW) ? pctTxt(c.AW) + "%" : "", o("pc_kg", "vd 0.5", "decimal")]);
-    const hc = /50/.test(c.AY || "") ? "50% cước" : (c.AY ? "Miễn phí" : "");
-    rows.push(["Phí chuyển hoàn", hc, `<select id="pc_hoan"><option value="">Giữ như cũ</option><option value="mien"${giu.pc_hoan === "mien" ? " selected" : ""}>Miễn phí</option><option value="50"${giu.pc_hoan === "50" ? " selected" : ""}>50% cước</option></select>`]);
+    rows.push(["Phí khai giá (%)", o("tu_kg", "vd 1", "decimal"), o("pc_kg", "vd 0.5", "decimal")]);
+    rows.push(["Phí chuyển hoàn", sel("tu_hoan", [["", "Chọn phí cũ"], ["mien", "Miễn phí"], ["50", "50% cước"]]), sel("pc_hoan", [["", "Giữ như cũ"], ["mien", "Miễn phí"], ["50", "50% cước"]])]);
   }
-  tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${esc(tu || (PL ? "(trống)" : "(tải file tạo mã ở mục 3)"))}</td><td>${sang}</td></tr>`).join("");
+  tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${tu}</td><td>${sang}</td></tr>`).join("");
   $("pl_bang").hidden = !rows.length; $("pl_trong").hidden = !!rows.length;
   $("w_pltk").hidden = !ch.includes("bank");
-  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x]).join(" + ") + ". Nhập thông tin mới ở mục 5 bên dưới." + (PL ? "" : " Cột \"Từ\" tự hiện sau khi tải file tạo mã ở mục 3.") : "";
-  veAnhPL(); plInvalidate();
+  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x]).join(" + ") + ". Nhập thông tin cũ và mới ở mục 5 bên dưới." : "";
+  veAnhPL(); veTu(); plInvalidate();
 }
 const fmtVN = n => Number(n || 0).toLocaleString("vi-VN");
 $("pl_doi").addEventListener("change", veBang);
-$("pl_rows").addEventListener("input", veAnhPL);
+$("pl_rows").addEventListener("input", e => { veAnhPL(); if (e.target.id.startsWith("tu_")){ $("xn_tu").checked = false; e.target.style.borderColor = ""; } });
+$("pl_rows").addEventListener("change", veTu);
 $("pl_rows").addEventListener("change", veAnhPL);
-$("pl_rows").addEventListener("change", e => { if (e.target.id === "pa_AJ") e.target.value = unacc(e.target.value).toUpperCase(); if (e.target.id === "pa_AI" || e.target.id === "pa_AK") e.target.value = e.target.value.replace(/\s/g, ""); });
+$("pl_rows").addEventListener("change", e => { if (/^(pa|tu)_AJ$/.test(e.target.id)) e.target.value = unacc(e.target.value).toUpperCase(); if (/^(pa|tu)_A[IK]$/.test(e.target.id)) e.target.value = e.target.value.replace(/\s/g, ""); });
+
+/* ---------- cột "Đang dùng": sale nhập tay -> đối chiếu với file tạo mã ---------- */
+function tuCot(){   // [mục, id ô, tên, giá trị trong file tạo mã, kiểu so sánh]
+  const c = (PL && PL.hien_tai) || {}, g = docGia(c.AU), ch = doiChon(), r = [];
+  if (ch.includes("sdt")) r.push(["tu_AI", "SĐT", c.AI, "so"]);
+  if (ch.includes("email")) r.push(["tu_AN", "Gmail", c.AN]);
+  if (ch.includes("diachi")) r.push(["tu_AH", "Địa chỉ", c.AH]);
+  if (ch.includes("bank")) r.push(["tu_AJ", "Chủ tài khoản", c.AJ], ["tu_AK", "Số tài khoản", c.AK, "so"], ["tu_AL", "Ngân hàng", c.AL]);
+  if (ch.includes("ds")) r.push(["tu_AZ", "Lịch đối soát", c.AZ, "ds"]);
+  if (ch.includes("gia")) r.push(["tu_moc", "Mốc kg đầu", g.moc, "tp"], ["tu_hcm", "Giá HCM → HCM", g.hcm, "so"], ["tu_tinh", "Giá HCM → tỉnh", g.tinh, "so"], ["tu_inc", "Mỗi kg tiếp theo", g.inc, "so"]);
+  if (ch.includes("phi")) r.push(["tu_kg", "Phí khai giá (%)", pctTxt(c.AW), "tp"], ["tu_hoan", "Phí chuyển hoàn", c.AY ? (/50/.test(c.AY) ? "50" : "mien") : "", "hoan"]);
+  return r;
+}
+function tuLech(){
+  const lech = [];
+  if (!PL) return lech;
+  for (const [id, ten, f, kieu] of tuCot()){
+    const x = String(nho(id) ?? "").trim(), y = String(f ?? "").trim(); if (!x || !y) continue;
+    let khop;
+    if (kieu === "so") khop = x.replace(/\D/g, "") === y.replace(/\D/g, "");
+    else if (kieu === "tp") khop = soTP2(x) !== null && soTP2(x) === soTP2(y);
+    else if (kieu === "ds") khop = bfeKey(x) === bfeKey(y);
+    else if (kieu === "hoan") khop = x === y;
+    else { const p = chuan(x), q = chuan(y); khop = p === q || (p.length > 6 && q.length > 6 && (p.includes(q) || q.includes(p))); }
+    if (!khop){ lech.push(`${ten}: bạn nhập "${x}", file tạo mã ghi "${kieu === "hoan" ? (y === "50" ? "50% cước" : "Miễn phí") : y}"`); const el = $(id); if (el) el.style.borderColor = "var(--bad)"; }
+  }
+  return lech;
+}
+function veTu(){
+  const box = $("pl_tucmp"), w = $("w_xntu"), lech = tuLech();
+  if (!lech.length){ box.hidden = true; w.hidden = true; $("xn_tu").checked = false; return; }
+  box.hidden = false; box.className = "note warn";
+  box.innerHTML = `<b>Thông tin cũ bạn nhập lệch file tạo mã ${lech.length} chỗ:</b><ul>` + lech.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" +
+    ((PL.da_co || []).length ? `Khách đã có ${esc(PL.da_co.join(", "))} nên lệch ở mục đã đổi bằng phụ lục là bình thường. ` : "") + "Xem lại hợp đồng / phụ lục gốc. Sửa cho đúng, hoặc nếu chắc chắn đúng thì tick xác nhận bên dưới.";
+  w.hidden = false;
+}
 
 /* ---------- giảm giá / giảm phí -> bắt hình xin giá lại + minh chứng ---------- */
 function lyDoGiam(){
   if (!PL) return [];
-  const c = PL.hien_tai || {}, ch = doiChon(), g = docGia(c.AU), r = [];
+  const c = PL.hien_tai || {}, ch = doiChon(), g0 = docGia(c.AU), r = [];
+  const g = {moc: g0.moc || soTP2(nho("tu_moc")), hcm: g0.hcm || so(nho("tu_hcm")), tinh: g0.tinh || so(nho("tu_tinh")), inc: g0.inc || so(nho("tu_inc"))};
   if (ch.includes("gia")){
     const moi = {moc: soTP2(nho("pc_moc")), hcm: so(nho("pc_hcm")), tinh: so(nho("pc_tinh")), inc: so(nho("pc_inc"))};
     if (moi.hcm && Number(g.hcm) && moi.hcm < Number(g.hcm)) r.push("giá HCM → HCM thấp hơn giá cũ");
@@ -797,9 +835,9 @@ function lyDoGiam(){
     if (moi.moc && Number(g.moc) && moi.moc > Number(g.moc)) r.push("mốc kg đầu tăng (khách được đi nặng hơn cùng giá)");
   }
   if (ch.includes("phi")){
-    const kg = soTP2(nho("pc_kg")), cu = c.AW === "" || c.AW === undefined ? null : Number(c.AW) * 100;
+    const kg = soTP2(nho("pc_kg")), cu = c.AW === "" || c.AW === undefined ? soTP2(nho("tu_kg")) : Number(c.AW) * 100;
     if (kg !== null && cu !== null && kg < cu) r.push("phí khai giá giảm");
-    if (nho("pc_hoan") === "mien" && /50/.test(c.AY || "")) r.push("chuyển hoàn đổi từ 50% sang miễn phí");
+    if (nho("pc_hoan") === "mien" && (c.AY ? /50/.test(c.AY) : nho("tu_hoan") === "50")) r.push("chuyển hoàn đổi từ 50% sang miễn phí");
   }
   return r;
 }
@@ -835,7 +873,7 @@ $("pl_xlsx").onchange = async e => {
     PL = r; plOld = "/in/old.xlsx"; msg.textContent = "Đã đọc: " + f.name;
     veThongTin(); $("pl_main").hidden = false; $("pl_ngay").value = $("pl_ngay").value || todayISO();
     veBang(); soHD();
-  } catch(err){ msg.textContent = "Không đọc được: " + (err && err.message || err); }
+  } catch(err){ msg.textContent = "Không đọc được: " + (err && err.message || err); veBang(); }
 };
 
 /* ---------- bước 3: hợp đồng cũ -> đối chiếu với file tạo mã ---------- */
@@ -956,6 +994,9 @@ function plLocal(q){
     if (!$("xn_pltk").checked) e.push("Chưa tick đã kiểm tra số tài khoản và tên chủ tài khoản mới (mục 5)");
   }
   if (ch.includes("ds") && !nho("pb_AZ")) e.push("Chưa chọn lịch đối soát mới (mục 5)");
+  const thieuCu = tuCot().filter(([id]) => !String(nho(id) ?? "").trim()).map(x => x[1]);
+  if (thieuCu.length) e.push("Chưa nhập thông tin đang dùng (cột cũ): " + thieuCu.join(", ") + " (mục 5)");
+  if (tuLech().length && !$("xn_tu").checked) e.push("Thông tin cũ lệch file tạo mã: sửa lại hoặc tick đã xem lại hợp đồng gốc (mục 5)");
   if (ch.includes("gia") && !so(nho("pc_hcm")) && !so(nho("pc_tinh"))) e.push("Chưa nhập giá mới (mục 5)");
   if (ch.includes("phi") && soTP2(nho("pc_kg")) === null && !nho("pc_hoan")) e.push("Chưa nhập phí mới (mục 5)");
   if (!plImgs.tn.length) e.push("Thiếu tin nhắn khách yêu cầu đổi (mục 6)");
