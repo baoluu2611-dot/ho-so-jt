@@ -528,6 +528,8 @@ function engine(){
     py.runPython("import sys; sys.path.insert(0, '/app')\nimport web_entry");
     /* Bộ tạo file cũ (chưa có phụ lục): tạm sửa địa chỉ tạm trú cá nhân = địa chỉ lấy hàng. Bundle mới đã có sẵn nên bỏ qua */
     py.runPython("try:\n    import pl\nexcept ImportError:\n    import form_map as _fm\n    _b0 = _fm.build\n    def _b(f, today, _b0=_b0):\n        cols, err = _b0(f, today)\n        p = [str(cols[k]).strip() for k in ('AC', 'AD', 'AE', 'AF') if cols.get(k)]\n        if p and f.get('loai') == 'canhan': cols['Z'] = ', '.join(p) + ', TP. Hồ Chí Minh'\n        return cols, err\n    _fm.build = _b");
+    /* ảnh minh chứng + xin giá lại của phụ lục -> gắn vào dòng phụ lục trong file tạo mã (bộ tạo file cũ chưa có thì vá ở đây) */
+    py.runPython("import pl, json as _json\nif not hasattr(pl, 'gan_anh'):\n    exec(compile('def gan_anh(xlsx, s_value, images):\\n    \"\"\"Gắn ảnh (minh chứng, xin giá lại...) vào cột HÌNH ẢNH (BE) của dòng phụ lục có Số HĐ = s_value, xếp ngang không đè nhau.\"\"\"\\n    from openpyxl.drawing.image import Image as XImg\\n    wb = openpyxl.load_workbook(xlsx)\\n    hit = None\\n    for ws in wb.worksheets:\\n        if ws.title.strip() not in (\\'MẪU HĐ\\', \\'MẪU PHỤ LỤC\\'):\\n            continue\\n        for r in range(1, ws.max_row + 1):\\n            if _norm(_v(ws.cell(r, ci(\\'S\\')).value)) == _norm(s_value):\\n                hit = (ws, r)\\n    if not hit:\\n        return False\\n    ws, r = hit\\n    def colpx(c):\\n        cd = ws.column_dimensions.get(L(c))\\n        w = cd.width if cd is not None and cd.width else 8.43\\n        return int(w * 7 + 5)\\n    ws.row_dimensions[r].height = 240\\n    col = ci(\\'BE\\')\\n    for path in images:\\n        im = XImg(path)\\n        k = 310 / im.height\\n        im.height, im.width = 310, int(im.width * k)\\n        ws.add_image(im, f\\'{L(col)}{r}\\')\\n        used = 0\\n        while used < im.width + 10:\\n            used += colpx(col); col += 1\\n    wb.save(xlsx)\\n    add_row.fix_newlines(xlsx)\\n    return True\\n', 'pl_gan_anh', 'exec'), pl.__dict__)\n    _orig_chay_pl = pl.chay_pl\n    def _chay_pl(req_json, images_json, old_path, tpl_dir, out_dir, today=None):\n        r = _orig_chay_pl(req_json, images_json, old_path, tpl_dir, out_dir, today)\n        d = _json.loads(r); im = _json.loads(images_json).get('xlsx')\n        if im and d.get('files') and d.get('tags'):\n            tag = next((t for t in d['tags'] if t.startswith('PLC')), d['tags'][-1])\n            pl.gan_anh(d['files'][0], tag + ' - ' + _json.loads(req_json)['hd_no'].strip(), im)\n        return r\n    pl.chay_pl = _chay_pl");
     st("sẵn sàng");
     return py;
   })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
@@ -1009,11 +1011,12 @@ function plErr(errs){ const box = $("pl_checkout"); box.hidden = false; box.clas
 
 async function plRun(code){
   const q = plReq(); const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(_){}
-  const anh = [];
+  const anh = [], xl = {};
   for (const k of ["tn", "dg", "mc"]) for (let i = 0; i < plImgs[k].length; i++){
-    const p = `/in/${code}_pl${k}_${i}.${plImgs[k][i].ext}`; FS.writeFile(p, new Uint8Array(await plImgs[k][i].blob.arrayBuffer())); anh.push(p); }
+    const p = `/in/${code}_pl${k}_${i}.${plImgs[k][i].ext}`; FS.writeFile(p, new Uint8Array(await plImgs[k][i].blob.arrayBuffer())); anh.push(p); (xl[k] = xl[k] || []).push(p); }
   const m = py.pyimport("pl");
-  try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: anh}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
+  /* file tạo mã: gắn hình minh chứng + hình xin giá lại vào dòng phụ lục */
+  try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: anh, xlsx: [...(xl.mc || []), ...(xl.dg || [])]}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
   finally { m.destroy(); }
 }
 $("pl_check").onclick = async () => {
