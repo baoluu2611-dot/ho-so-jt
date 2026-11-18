@@ -398,7 +398,7 @@ IMG_ROLES.unshift(["giayto","", true]);
 const images = {}; IMG_ROLES.forEach(([k]) => images[k] = []);
 $("imgs").innerHTML = IMG_ROLES.slice(1).map(([k,label,req],i) => `
   <div style="display:grid;gap:6px">
-    <label for="f_${k}"><b>${i+1}. ${label}${req ? "" : " · không bắt buộc"}</b></label>
+    <label for="f_${k}"><b>${i+1}. ${label}${req || label.includes("bắt buộc khi") ? "" : " · không bắt buộc"}</b></label>
     <div class="row"><input type="file" id="f_${k}" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" data-clear="${k}">Xóa ảnh</button></div>
     <div class="files" id="t_${k}"></div>
   </div>`).join("");
