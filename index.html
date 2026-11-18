@@ -391,10 +391,14 @@ async function toImage(blob){
   try { const img = new Image(); img.src = url; await img.decode(); return img; } finally { setTimeout(()=>URL.revokeObjectURL(url), 1000); }
 }
 async function normalizeImage(file){
-  const okType = /image\/(png|jpeg)/.test(file.type);
+  /* Bộ tạo file Word chỉ đọc được PNG và JPEG có chữ JFIF/Exif ở đầu file. Ảnh lưu từ Zalo, Messenger... hay thiếu đoạn này
+     (trình duyệt vẫn xem được) -> vẽ lại thành JPEG chuẩn. Xem đúng nội dung file, không tin đuôi file */
+  const h = new Uint8Array(await file.slice(0, 12).arrayBuffer()), tag = String.fromCharCode(...h.slice(6, 10));
+  const isPng = h[0] === 0x89 && h[1] === 0x50 && h[2] === 0x4E && h[3] === 0x47;
+  const okType = isPng || (h[0] === 0xFF && h[1] === 0xD8 && (tag === "JFIF" || tag === "Exif"));
   const img = await toImage(file);
   const max = 2000, big = Math.max(img.naturalWidth, img.naturalHeight) > max;
-  if (okType && !big) return {blob:file, ext: file.type === "image/png" ? "png" : "jpg"};
+  if (okType && !big) return {blob:file, ext: isPng ? "png" : "jpg"};
   const k = big ? max / Math.max(img.naturalWidth, img.naturalHeight) : 1;
   const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
   const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height);
@@ -1048,6 +1052,14 @@ function plLocal(q){
   if (giam.length && !plImgs.mc.length) e.push("Giảm cho khách: cần hình minh chứng (sản lượng tăng, giá đối thủ…) (mục 6)");
   return e;
 }
+/* báo đúng lỗi thay vì luôn ghi "kiểm tra mạng" */
+function loiBoTao(err){
+  const s = String(err && err.message || err);
+  if (/UnrecognizedImageError|cannot identify image/i.test(s)) return "Có 1 ảnh bộ tạo file không đọc được. Bấm Xóa ảnh ở mục 6, chụp màn hình ảnh đó rồi tải lại.";
+  if (!pyReady) return "Không tải được bộ tạo file. Kiểm tra mạng rồi bấm lại.";
+  const dong = s.trim().split("\n").filter(Boolean).pop() || s;
+  return "Bộ tạo file báo lỗi: " + dong.slice(0, 200) + ". Chụp màn hình gửi trưởng nhóm.";
+}
 function plErr(errs){ const box = $("pl_checkout"); box.hidden = false; box.className = "note bad"; box.innerHTML = "<b>Cần sửa trước khi gửi:</b><ul>" + errs.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>"; }
 
 async function plRun(code){
@@ -1086,7 +1098,7 @@ $("pl_check").onclick = async () => {
   const e1 = [...plLocal(q), ...eGui];
   let r = {ok: true};
   if (q.loai_doi.length){
-    try { r = await plRun("PLTEST"); } catch(err){ box.className = "note bad"; box.textContent = "Không tải được bộ tạo file. Kiểm tra mạng rồi bấm lại."; return; }
+    try { r = await plRun("PLTEST"); } catch(err){ box.className = "note bad"; box.textContent = loiBoTao(err); return; }
   }
   const errs = [...e1, ...(r.errors || [])];
   if (!r.ok && !r.errors) errs.push("Tạo văn bản chưa được: " + (r.summary || ""));
