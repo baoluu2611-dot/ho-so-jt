@@ -204,7 +204,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <div class="grid" id="w_khcu" hidden>
       <label><b>Giá cũ HCM → HCM</b><input id="p_cu_hcm" inputmode="numeric" placeholder="giá mốc đầu đang dùng"></label>
       <label><b>Giá cũ HCM → tỉnh</b><input id="p_cu_tinh" inputmode="numeric"></label>
-      <label><b>Sản lượng gần đây (đơn/tháng)</b><input id="p_cu_sl" inputmode="numeric" placeholder="vd 50"></label>
+      <label><b>Sản lượng gần đây (đơn/ngày)</b><input id="p_cu_sl" inputmode="numeric" placeholder="vd 30"></label>
       <label><b>Số tháng đã ngừng gửi</b><input id="p_cu_ngung" inputmode="numeric" placeholder="0 nếu vẫn đang gửi"></label>
     </div>
     <div id="xg_note" class="note" hidden></div>
@@ -352,9 +352,8 @@ const NGUON = ["Hội Nhóm MXH","Quét Đường","Đi theo bên cùng ngành",
 const BANKS = [["970436","Vietcombank"],["970415","VietinBank"],["970418","BIDV"],["970405","Agribank"],["970407","Techcombank"],["970422","MB Bank"],["970416","ACB"],["970432","VPBank"],["970423","TPBank"],["970403","Sacombank"],["970441","VIB"],["970437","HDBank"],["970426","MSB"],["970443","SHB"],["970448","OCB"],["970440","SeABank"],["970431","Eximbank"],["970449","LPBank"],["970428","Nam A Bank"],["546034","Cake by VPBank"],["970454","BVBank"],["970452","KienlongBank"],["970412","PVcomBank"],["970425","ABBank"],["970409","Bac A Bank"],["970427","VietA Bank"],["970419","NCB"],["970400","Saigonbank"],["970433","Vietbank"],["970438","BaoViet Bank"]];
 const IMG_ROLES = [
   ["san_pham","Ảnh sản phẩm / kho", false],
-  ["gia_doi_thu","Ảnh giá đối thủ (bắt buộc khi phải xin giá)", false],
+  ["gia_doi_thu","Ảnh giá đối thủ hoặc sản lượng đối thủ (bắt buộc khi phải xin giá)", false],
   ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)", false],
-  ["chung_minh_sl","Hình chứng minh sản lượng thay đổi (bắt buộc khi khách cũ ngừng gửi từ 2 tháng)", false],
   ["truong_nhom","Hình trưởng nhóm hoặc PIC trao đổi với shop (bắt buộc khi giá từ 17.000 trở xuống)", false],
   ["tin_nhan","Tin nhắn chốt với khách", true],
 ];
@@ -469,9 +468,9 @@ function xinGia(o){
   if (o.nhieuMoc) r.push("nhiều mốc kg");
   if (isFinite(lo) && lo < 19000) r.push("giá dưới 19.000đ");
   if (o.kg !== null && o.kg < 0.5) r.push("phí bảo hiểm dưới 0,5%");
-  if (o.cu && o.sl !== null && o.sl < 100) r.push("khách cũ đi ít (dưới 100 đơn/tháng)");
+  if (o.cu && o.sl !== null && o.sl < 50) r.push("khách cũ đi ít (dưới 50 đơn/ngày)");
   if (o.cu && o.ngung >= 2) r.push(`khách cũ đã ngừng gửi ${o.ngung} tháng`);
-  if (o.cu && ((o.cuHcm && o.hcm && o.cuHcm - o.hcm >= 2000) || (o.cuTinh && o.tinh && o.cuTinh - o.tinh >= 2000))) r.push("giảm từ 2.000đ so với giá cũ");
+  if (o.cu && ((o.cuHcm && o.hcm && o.hcm < o.cuHcm) || (o.cuTinh && o.tinh && o.tinh < o.cuTinh))) r.push("giá thấp hơn giá cũ");
   return r;
 }
 const soTP = s => { const x = Number(String(s || "").replace(",", ".").replace(/[^\d.]/g, "")); return String(s || "").trim() === "" || !isFinite(x) ? null : x; };
@@ -486,7 +485,7 @@ function veXinGia(){
   const r = lyDoXinGia(), n = $("xg_note");
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
   n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
-  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá đối thủ ở mục 8" + (cu && (soTP(v("p_cu_ngung")) || 0) >= 2 ? ", kèm hình chứng minh sản lượng thay đổi." : ".") + (giaThap() <= 17000 ? " Giá từ 17.000 trở xuống: thêm hình trưởng nhóm hoặc PIC trao đổi với shop." : "") : "Không cần xin giá: không cần ảnh duyệt giá và ảnh giá đối thủ.";
+  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá/sản lượng đối thủ ở mục 8." + (giaThap() <= 17000 ? " Giá từ 17.000 trở xuống: thêm hình trưởng nhóm hoặc PIC trao đổi với shop." : "") : "Không cần xin giá: không cần ảnh xin giá và ảnh đối thủ.";
 }
 ["p_moc","p_hcm","p_tinh","p_khaigia","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung"].forEach(id => $(id).addEventListener("input", veXinGia));
 ["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
@@ -507,11 +506,10 @@ function localChecks(f){
     if (!digits(v("p_cu_hcm")) || !digits(v("p_cu_tinh"))) e.push("Khách cũ: nhập giá cũ HCM → HCM và HCM → tỉnh (mục 7)");
     if (soTP(v("p_cu_sl")) === null) e.push("Khách cũ: nhập sản lượng gần đây (mục 7)");
     if (soTP(v("p_cu_ngung")) === null) e.push("Khách cũ: nhập số tháng đã ngừng gửi, vẫn gửi đều thì ghi 0 (mục 7)");
-    if ((soTP(v("p_cu_ngung")) || 0) >= 2 && !images.chung_minh_sl.length) e.push("Khách cũ ngừng gửi từ 2 tháng: cần hình chứng minh sản lượng thay đổi (mục 8)");
   }
   if (giaThap() <= 17000 && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình trưởng nhóm hoặc PIC trao đổi với shop (mục 8)");
   const xg = lyDoXinGia();
-  if (xg.length && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD và ảnh giá đối thủ (mục 8)");
+  if (xg.length && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD và ảnh giá/sản lượng đối thủ (mục 8)");
   return e;
 }
 
@@ -658,7 +656,7 @@ $("btn-send").onclick = async () => {
     const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(e){}
     const paths = {};
     for (const [k, arr] of Object.entries(images)){ paths[k] = []; for (let i = 0; i < arr.length; i++){ const p = `/in/${code}_${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); paths[k].push(p); } }
-    paths.duyet_gia = (paths.duyet_gia || []).concat(paths.chung_minh_sl || [], paths.truong_nhom || []); delete paths.chung_minh_sl; delete paths.truong_nhom;
+    paths.duyet_gia = (paths.duyet_gia || []).concat(paths.truong_nhom || []); delete paths.truong_nhom;
     const r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO());
     if (!r.ok){ $("formmsg").textContent = ""; const box = $("checkout"); box.className = "note bad"; box.style.whiteSpace = "pre-wrap"; box.textContent = "Không tạo được file:\n" + (r.errors || []).join("\n") + (r.summary || ""); btn.disabled = false; return; }
     const m = py.pyimport("web_entry"); m.dong_goi(JSON.stringify(r.files), "/out/" + code + ".zip"); m.destroy();
