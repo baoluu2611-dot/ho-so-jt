@@ -354,7 +354,7 @@ const IMG_ROLES = [
   ["san_pham","Ảnh sản phẩm / kho", false],
   ["gia_doi_thu","Ảnh giá đối thủ hoặc sản lượng đối thủ (bắt buộc khi phải xin giá)", false],
   ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)", false],
-  ["truong_nhom","Hình trưởng nhóm hoặc PIC trao đổi với shop (bắt buộc khi giá từ 17.000 trở xuống)", false],
+  ["truong_nhom","Hình PIC hoặc trưởng nhóm tại shop (bắt buộc khi giá từ 17.000 trở xuống)", false],
   ["tin_nhan","Tin nhắn chốt với khách", true],
 ];
 const fill = (sel, arr) => { sel.innerHTML = arr.map(v => `<option>${v}</option>`).join(""); };
@@ -466,7 +466,7 @@ function xinGia(o){
   const r = [], lo = Math.min(...[o.hcm, o.tinh].filter(Boolean));
   if (o.moc > 2) r.push("mốc kg đầu trên 2kg");
   if (o.nhieuMoc) r.push("nhiều mốc kg");
-  if (isFinite(lo) && lo < 19000) r.push("giá dưới 19.000đ");
+  if (isFinite(lo) && lo < 19000) r.push(lo <= 18000 ? "giá từ 18.000đ trở xuống" : "giá dưới 19.000đ");
   if (o.kg !== null && o.kg < 0.5) r.push("phí bảo hiểm dưới 0,5%");
   if (o.cu && o.sl !== null && o.sl < 50) r.push("khách cũ đi ít (dưới 50 đơn/ngày)");
   if (o.cu && o.ngung >= 2) r.push(`khách cũ đã ngừng gửi ${o.ngung} tháng`);
@@ -485,7 +485,7 @@ function veXinGia(){
   const r = lyDoXinGia(), n = $("xg_note");
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
   n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
-  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá/sản lượng đối thủ ở mục 8." + (giaThap() <= 17000 ? " Giá từ 17.000 trở xuống: thêm hình trưởng nhóm hoặc PIC trao đổi với shop." : "") : "Không cần xin giá: không cần ảnh xin giá và ảnh đối thủ.";
+  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá/sản lượng đối thủ ở mục 8." + (giaThap() <= 17000 ? " Giá từ 17.000 trở xuống: thêm hình PIC hoặc trưởng nhóm tại shop." : "") : "Không cần xin giá: không cần ảnh xin giá và ảnh đối thủ.";
 }
 ["p_moc","p_hcm","p_tinh","p_khaigia","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung"].forEach(id => $(id).addEventListener("input", veXinGia));
 ["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
@@ -507,7 +507,7 @@ function localChecks(f){
     if (soTP(v("p_cu_sl")) === null) e.push("Khách cũ: nhập sản lượng gần đây (mục 7)");
     if (soTP(v("p_cu_ngung")) === null) e.push("Khách cũ: nhập số tháng đã ngừng gửi, vẫn gửi đều thì ghi 0 (mục 7)");
   }
-  if (giaThap() <= 17000 && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình trưởng nhóm hoặc PIC trao đổi với shop (mục 8)");
+  if (giaThap() <= 17000 && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình PIC hoặc trưởng nhóm tại shop (mục 8)");
   const xg = lyDoXinGia();
   if (xg.length && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD và ảnh giá/sản lượng đối thủ (mục 8)");
   return e;
