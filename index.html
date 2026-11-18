@@ -245,7 +245,8 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
   <section class="card">
     <h2><span class="n">3</span>Hồ sơ cũ của khách (bắt buộc cả 2 file)</h2>
     <div style="display:grid;gap:6px">
-      <label for="pl_xlsx"><b>File tạo mã cũ (.xlsx)</b></label>
+      <label for="pl_xlsx"><b>File tạo mã mới nhất (.xlsx)</b></label>
+      <div class="hint">Lấy file tạo mã trong mail của lần gần nhất: hợp đồng, hoặc phụ lục gần nhất nếu khách đã làm phụ lục.</div>
       <div class="row"><input type="file" id="pl_xlsx" accept=".xlsx" style="max-width:320px"><span id="pl_xlsxmsg" class="hint"></span></div>
     </div>
     <div style="display:grid;gap:6px">
@@ -270,7 +271,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 
   <section class="card">
     <h2><span class="n">5</span>Đổi từ → sang</h2>
-    <div class="hint">Nhập tay cả 2 cột. Cột "Đang dùng": xem trên hợp đồng / phụ lục gần nhất của khách. Cột "Đổi sang": thông tin mới. Web đối chiếu cột "Đang dùng" với file tạo mã cũ.</div>
+    <div class="hint">Nhập tay cả 2 cột. Cột "Đang dùng": xem trên hợp đồng / phụ lục gần nhất của khách. Cột "Đổi sang": thông tin mới. Web đối chiếu cột "Đang dùng" với file tạo mã.</div>
     <div id="pl_trong" class="note">Chưa chọn mục cần đổi ở mục 2.</div>
     <div class="tablewrap"><table id="pl_bang" hidden><thead><tr><th>Mục</th><th>Đang dùng (cũ)</th><th>Đổi sang (mới)</th></tr></thead><tbody id="pl_rows"></tbody></table></div>
     <div id="pl_tucmp" class="note" hidden></div>
@@ -540,6 +541,8 @@ function engine(){
     py.runPython("import re as _re, json as _json, zipfile as _zf, build_from_excel as _bfe, form_map as _fm, pl as _pl\nif (_bfe.pct_text(0.005) or '').startswith('0,'):\n    def _pct(w, _p0=_bfe.pct_text):\n        s = _p0(w)\n        return s.replace('0,', '0.', 1).replace('không phẩy', 'không chấm') if s and s.startswith('0,') else s\n    _bfe.pct_text = _pct\nif not getattr(_fm, '_y_hoa', False):\n    def _fb(f, today, _b0=_fm.build):\n        cols, err = _b0(f, today)\n        if cols.get('Y') == 'Cục Cảnh sát Quản lý hành chính về trật tự xã hội':\n            cols['Y'] = 'Cục Cảnh Sát Quản Lý Hành Chính Về Trật Tự Xã Hội'\n        return cols, err\n    _fm.build = _fb\n    _fm._y_hoa = True\nif not getattr(_pl, '_kg_dot', False):\n    def _dw(path, _d0=_pl.doc_word):\n        r = _d0(path)\n        d = _json.loads(r)\n        if d.get('ok') and not d['hien_tai'].get('AW'):\n            try:\n                from lxml import etree as _et\n                W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'\n                root = _et.fromstring(_zf.ZipFile(path).read('word/document.xml'))\n                for tr in root.iter(W + 'tr'):\n                    cs = [''.join(t.text or '' for t in tc.iter(W + 't')).strip() for tc in tr.findall(W + 'tc')]\n                    if len(cs) >= 2 and cs[0].startswith('Phí khai giá'):\n                        mm = _re.match(r'(\\d+)(?:[,.](\\d))?%', cs[-1])\n                        if mm:\n                            d['hien_tai']['AW'] = str(round(float(mm.group(1) + '.' + (mm.group(2) or '0')) / 100, 6))\n                            r = _json.dumps(d, ensure_ascii=False)\n                        break\n            except Exception:\n                pass\n        return r\n    _pl.doc_word = _dw\n    _pl._kg_dot = True");
     /* Phụ lục nối tiếp: đọc file tạo mã trả thêm dòng HĐ gốc + lịch sử các phụ lục (để đối chiếu HĐ gốc đúng, hiện các lần đổi) */
     py.runPython("import json as _json, openpyxl as _ox, pl as _pl\nif not getattr(_pl, '_co_goc', False):\n    def _dfc(path, _d0=_pl.doc_file_cu):\n        \"\"\"Như cũ + \"goc\" (dòng hợp đồng gốc, chưa tính phụ lục) + \"lich_su\" (mỗi phụ lục đã đổi cột nào, cũ -> mới).\"\"\"\n        r = _d0(path)\n        d = _json.loads(r)\n        if not d.get('ok') or 'goc' in d:\n            return r\n        try:\n            rows = _pl._rows(_ox.load_workbook(path))\n            hds = [x for x in rows if not _pl.RE_TAG.match(_pl._v(x[2]['S']))]\n            hd = hds[-1][2]\n            goc = {c: _pl._v(v) for c, v in hd.items()}\n            cur, ls = dict(goc), []\n            for sh, rr, row in rows:\n                m = _pl.RE_TAG.match(_pl._v(row['S']))\n                if not m or _pl._norm(m.group(3)) != _pl._norm(d['hd_no']):\n                    continue\n                doi = []\n                for c in _pl.GOP:\n                    v = _pl._v(row.get(c))\n                    if v and v != cur.get(c, ''):\n                        doi.append({'c': c, 'cu': cur.get(c, ''), 'moi': v}); cur[c] = v\n                ls.append({'tag': m.group(1) + m.group(2), 'ngay': _pl._v(row.get('F')), 'doi': doi})\n            d['goc'] = goc\n            d['lich_su'] = ls\n        except Exception as e:\n            d['goc_loi'] = str(e)[:120]\n        return _json.dumps(d, ensure_ascii=False)\n    _pl.doc_file_cu = _dfc\n    _pl._co_goc = True");
+    /* Phí khai giá trong file tạo mã ghi dạng chữ "0.5%", "1%" -> đọc thành số (0.005, 0.01), cùng giá trị; trước đây làm PLC báo lỗi could not convert string to float */
+    py.runPython("import json as _json, pl as _pl\nif not getattr(_pl, '_aw_pct', False):\n    def _aw(v):\n        \"\"\"Phí khai giá ghi dạng chữ '0.5%', '1%', '0,5%' trong file tạo mã -> số 0.005, 0.01 (cùng giá trị).\"\"\"\n        s = str(v if v is not None else '').strip()\n        if '%' not in s:\n            return v\n        try:\n            return str(round(float(s.replace('%', '').replace(',', '.').strip()) / 100, 6))\n        except ValueError:\n            return v\n    def _dfc5(path, _d0=_pl.doc_file_cu):\n        r = _d0(path)\n        d = _json.loads(r)\n        if not d.get('ok'):\n            return r\n        for k in ('hien_tai', 'goc'):\n            if isinstance(d.get(k), dict) and 'AW' in d[k]:\n                d[k]['AW'] = _aw(d[k]['AW'])\n        for x in d.get('lich_su') or []:\n            doi = []\n            for c in x.get('doi') or []:\n                if c.get('c') == 'AW':\n                    c['cu'], c['moi'] = _aw(c.get('cu')), _aw(c.get('moi'))\n                    try:\n                        if float(c['cu']) == float(c['moi']):\n                            continue\n                    except (TypeError, ValueError):\n                        pass\n                doi.append(c)\n            x['doi'] = doi\n        return _json.dumps(d, ensure_ascii=False)\n    _pl.doc_file_cu = _dfc5\n    _pl._aw_pct = True");
     st("sẵn sàng");
     return py;
   })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
@@ -1086,7 +1089,7 @@ function loiDaGui(){
 }
 $("pl_check").onclick = async () => {
   const box = $("pl_checkout"); box.hidden = false;
-  if (!PL){ plErr(["Chưa tải file tạo mã cũ (mục 3)"]); return; }
+  if (!PL){ plErr(["Chưa tải file tạo mã mới nhất (mục 3)"]); return; }
   box.className = "note"; box.textContent = "Đang kiểm tra...";
   store.set("jt-sale", {s_ten:v("s_ten"), s_msnv:v("s_msnv"), s_khu:v("s_khu"), s_sdt:v("s_sdt"), s_bc:v("s_bc"), s_email:v("s_email"), s_manhom:v("s_manhom")});
   const q = plReq();
