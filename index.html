@@ -204,8 +204,9 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <div class="grid" id="w_khcu" hidden>
       <label><b>Giá cũ HCM → HCM</b><input id="p_cu_hcm" inputmode="numeric" placeholder="giá mốc đầu đang dùng"></label>
       <label><b>Giá cũ HCM → tỉnh</b><input id="p_cu_tinh" inputmode="numeric"></label>
+      <label><b>Sản lượng gần đây (đơn/tháng)</b><input id="p_cu_sl" inputmode="numeric" placeholder="vd 50"></label>
+      <label><b>Số tháng đã ngừng gửi</b><input id="p_cu_ngung" inputmode="numeric" placeholder="0 nếu vẫn đang gửi"></label>
     </div>
-    <label class="row" id="w_khit" style="color:var(--ink)" hidden><input type="checkbox" id="p_khit" style="width:auto"> Khách đi ít (vài chục đơn/tháng) hoặc đã ngừng gửi 2–3 tháng</label>
     <div id="xg_note" class="note" hidden></div>
   </section>
 
@@ -300,9 +301,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
         <label><b>Sản lượng / tháng</b><input id="pc_sl" inputmode="numeric"></label>
       </div>
       <div style="display:grid;gap:6px">
-        <label class="row" style="color:var(--ink)"><input type="checkbox" id="pc_it" style="width:auto"> Khách đi ít (vài chục đơn/tháng) hoặc đã ngừng gửi 2–3 tháng</label>
-        <div id="pc_xg" class="note" hidden></div>
-        <label for="pc_dg"><b>Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)</b></label>
+        <label for="pc_dg"><b>Ảnh duyệt giá của TPKD (bắt buộc khi giá dưới 19.000)</b></label>
         <div class="row"><input type="file" id="pc_dg" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" id="pc_dg_x">Xóa ảnh</button></div>
         <div class="files" id="t_pc_dg"></div>
       </div>
@@ -354,7 +353,8 @@ const BANKS = [["970436","Vietcombank"],["970415","VietinBank"],["970418","BIDV"
 const IMG_ROLES = [
   ["san_pham","Ảnh sản phẩm / kho", false],
   ["gia_doi_thu","Ảnh giá đối thủ (bắt buộc khi phải xin giá)", false],
-  ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá; khách đi ít/ngừng gửi thì kèm hình chứng minh sản lượng)", false],
+  ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)", false],
+  ["chung_minh_sl","Hình chứng minh sản lượng thay đổi (bắt buộc khi khách cũ ngừng gửi từ 2 tháng)", false],
   ["tin_nhan","Tin nhắn chốt với khách", true],
 ];
 const fill = (sel, arr) => { sel.innerHTML = arr.map(v => `<option>${v}</option>`).join(""); };
@@ -468,7 +468,8 @@ function xinGia(o){
   if (o.nhieuMoc) r.push("nhiều mốc kg");
   if (isFinite(lo) && lo < 18000) r.push("giá dưới 18.000đ");
   if (o.kg !== null && o.kg < 0.5) r.push("phí bảo hiểm dưới 0,5%");
-  if (o.cu && o.it) r.push("khách cũ đi ít / ngừng gửi 2–3 tháng");
+  if (o.cu && o.sl !== null && o.sl < 100) r.push("khách cũ đi ít (dưới 100 đơn/tháng)");
+  if (o.cu && o.ngung >= 2) r.push(`khách cũ đã ngừng gửi ${o.ngung} tháng`);
   if (o.cu && ((o.cuHcm && o.hcm && o.cuHcm - o.hcm >= 2000) || (o.cuTinh && o.tinh && o.cuTinh - o.tinh >= 2000))) r.push("giảm từ 2.000đ so với giá cũ");
   return r;
 }
@@ -476,17 +477,17 @@ const soTP = s => { const x = Number(String(s || "").replace(",", ".").replace(/
 function lyDoXinGia(){
   const cu = $("p_khach").value === "cu";
   return xinGia({moc: soTP(v("p_moc")) || 2, nhieuMoc: $("p_bac2").checked, hcm: digits(v("p_hcm")), tinh: digits(v("p_tinh")), kg: soTP(v("p_khaigia")),
-    cu, it: cu && $("p_khit").checked, cuHcm: digits(v("p_cu_hcm")), cuTinh: digits(v("p_cu_tinh"))});
+    cu, sl: soTP(v("p_cu_sl")), ngung: soTP(v("p_cu_ngung")) || 0, cuHcm: digits(v("p_cu_hcm")), cuTinh: digits(v("p_cu_tinh"))});
 }
 function veXinGia(){
-  const cu = $("p_khach").value === "cu"; $("w_khcu").hidden = !cu; $("w_khit").hidden = !cu;
+  const cu = $("p_khach").value === "cu"; $("w_khcu").hidden = !cu;
   const r = lyDoXinGia(), n = $("xg_note");
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
   n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
-  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá đối thủ ở mục 8." : "Không cần xin giá: không cần ảnh duyệt giá và ảnh giá đối thủ.";
+  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá đối thủ ở mục 8" + (cu && (soTP(v("p_cu_ngung")) || 0) >= 2 ? ", kèm hình chứng minh sản lượng thay đổi." : ".") : "Không cần xin giá: không cần ảnh duyệt giá và ảnh giá đối thủ.";
 }
-["p_moc","p_hcm","p_tinh","p_khaigia","p_cu_hcm","p_cu_tinh"].forEach(id => $(id).addEventListener("input", veXinGia));
-["p_bac2","p_khach","p_khit"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
+["p_moc","p_hcm","p_tinh","p_khaigia","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung"].forEach(id => $(id).addEventListener("input", veXinGia));
+["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
 function localChecks(f){
   const e = [];
   const need = [["s_ten","Họ tên sale"],["s_msnv","Mã nhân viên sale"],["s_sdt","SĐT sale"],["s_bc","Bưu cục báo tạo mã"],["k_sdt","SĐT khách"],["k_email","Gmail đối soát"],
@@ -500,7 +501,12 @@ function localChecks(f){
   if (v("l_bc") && !/^\d{3}[A-Z][A-Z0-9]{2}$/i.test(v("l_bc"))) e.push("Bưu cục lấy hàng chỉ ghi mã bưu cục, vd 028W61 (đang ghi: " + v("l_bc") + ")");
   if (!$("xn_gt").checked) e.push("Chưa tick xác nhận đã đối chiếu thông tin với CCCD / GPKD (mục 3)");
   if (!$("xn_tk").checked) e.push("Chưa tick xác nhận đã kiểm tra số tài khoản và tên chủ tài khoản (mục 5)");
-  if ($("p_khach").value === "cu" && (!digits(v("p_cu_hcm")) || !digits(v("p_cu_tinh")))) e.push("Khách cũ: nhập giá cũ HCM → HCM và HCM → tỉnh (mục 7)");
+  if ($("p_khach").value === "cu"){
+    if (!digits(v("p_cu_hcm")) || !digits(v("p_cu_tinh"))) e.push("Khách cũ: nhập giá cũ HCM → HCM và HCM → tỉnh (mục 7)");
+    if (soTP(v("p_cu_sl")) === null) e.push("Khách cũ: nhập sản lượng gần đây (mục 7)");
+    if (soTP(v("p_cu_ngung")) === null) e.push("Khách cũ: nhập số tháng đã ngừng gửi, vẫn gửi đều thì ghi 0 (mục 7)");
+    if ((soTP(v("p_cu_ngung")) || 0) >= 2 && !images.chung_minh_sl.length) e.push("Khách cũ ngừng gửi từ 2 tháng: cần hình chứng minh sản lượng thay đổi (mục 8)");
+  }
   const xg = lyDoXinGia();
   if (xg.length && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD và ảnh giá đối thủ (mục 8)");
   return e;
@@ -649,6 +655,7 @@ $("btn-send").onclick = async () => {
     const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(e){}
     const paths = {};
     for (const [k, arr] of Object.entries(images)){ paths[k] = []; for (let i = 0; i < arr.length; i++){ const p = `/in/${code}_${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); paths[k].push(p); } }
+    paths.duyet_gia = (paths.duyet_gia || []).concat(paths.chung_minh_sl || []); delete paths.chung_minh_sl;
     const r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO());
     if (!r.ok){ $("formmsg").textContent = ""; const box = $("checkout"); box.className = "note bad"; box.style.whiteSpace = "pre-wrap"; box.textContent = "Không tạo được file:\n" + (r.errors || []).join("\n") + (r.summary || ""); btn.disabled = false; return; }
     const m = py.pyimport("web_entry"); m.dong_goi(JSON.stringify(r.files), "/out/" + code + ".zip"); m.destroy();
@@ -834,23 +841,12 @@ function plLocal(q){
   if (q.loai_doi.includes("PLC")){
     const g = [v("pc_hcm"), v("pc_tinh")].map(x => Number(x.replace(/\D/g, "")));
     if (g.some(x => !x)) e.push("PLC: thiếu giá HCM - HCM hoặc HCM - Tỉnh");
-    else { const xg = plXinGia(); if (xg.length && !plImgs.dg.length) e.push("PLC: phải xin giá (" + xg.join("; ") + "), cần tin nhắn xin giá với TPKD"); }
+    else if (Math.min(...g) < 19000 && !plImgs.dg.length) e.push("PLC: giá dưới 19.000 cần ảnh duyệt giá của TPKD");
     if (!(Number(v("pc_kg").replace(",", ".")) >= 0) || v("pc_kg") === "") e.push("PLC: thiếu phí khai giá");
   }
   if (!plImgs.tn.length) e.push("Thiếu ảnh tin nhắn chốt với khách (mục 5)");
   return e;
 }
-function plXinGia(){
-  const n = id => Number(v(id).replace(/\D/g, "")) || 0, cu = docGia((PL && PL.hien_tai || {}).AU);
-  return xinGia({moc: soTP(v("pc_moc")) || 2, nhieuMoc: false, hcm: n("pc_hcm"), tinh: n("pc_tinh"), kg: soTP(v("pc_kg")),
-    cu: true, it: $("pc_it").checked, cuHcm: Number(cu.hcm) || 0, cuTinh: Number(cu.tinh) || 0});
-}
-function veXinGiaPL(){
-  const r = plXinGia(), n = $("pc_xg"); n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
-  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + "." : "Không cần xin giá, không cần ảnh duyệt giá.";
-}
-["pc_moc","pc_hcm","pc_tinh","pc_kg"].forEach(id => $(id).addEventListener("input", veXinGiaPL));
-$("pc_it").addEventListener("change", veXinGiaPL); $("pl_C").addEventListener("change", veXinGiaPL);
 function plErr(errs){ const box = $("pl_checkout"); box.hidden = false; box.className = "note bad"; box.innerHTML = "<b>Cần sửa trước khi gửi:</b><ul>" + errs.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>"; }
 
 async function plRun(code){
