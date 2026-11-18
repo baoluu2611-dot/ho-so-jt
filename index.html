@@ -355,6 +355,7 @@ const IMG_ROLES = [
   ["gia_doi_thu","Ảnh giá đối thủ (bắt buộc khi phải xin giá)", false],
   ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)", false],
   ["chung_minh_sl","Hình chứng minh sản lượng thay đổi (bắt buộc khi khách cũ ngừng gửi từ 2 tháng)", false],
+  ["truong_nhom","Hình trưởng nhóm hoặc PIC trao đổi với shop (bắt buộc khi giá từ 17.000 trở xuống)", false],
   ["tin_nhan","Tin nhắn chốt với khách", true],
 ];
 const fill = (sel, arr) => { sel.innerHTML = arr.map(v => `<option>${v}</option>`).join(""); };
@@ -479,12 +480,13 @@ function lyDoXinGia(){
   return xinGia({moc: soTP(v("p_moc")) || 2, nhieuMoc: $("p_bac2").checked, hcm: digits(v("p_hcm")), tinh: digits(v("p_tinh")), kg: soTP(v("p_khaigia")),
     cu, sl: soTP(v("p_cu_sl")), ngung: soTP(v("p_cu_ngung")) || 0, cuHcm: digits(v("p_cu_hcm")), cuTinh: digits(v("p_cu_tinh"))});
 }
+const giaThap = () => Math.min(...[digits(v("p_hcm")), digits(v("p_tinh"))].filter(Boolean));
 function veXinGia(){
   const cu = $("p_khach").value === "cu"; $("w_khcu").hidden = !cu;
   const r = lyDoXinGia(), n = $("xg_note");
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
   n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
-  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá đối thủ ở mục 8" + (cu && (soTP(v("p_cu_ngung")) || 0) >= 2 ? ", kèm hình chứng minh sản lượng thay đổi." : ".") : "Không cần xin giá: không cần ảnh duyệt giá và ảnh giá đối thủ.";
+  n.textContent = r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". Tải tin nhắn xin giá và ảnh giá đối thủ ở mục 8" + (cu && (soTP(v("p_cu_ngung")) || 0) >= 2 ? ", kèm hình chứng minh sản lượng thay đổi." : ".") + (giaThap() <= 17000 ? " Giá từ 17.000 trở xuống: thêm hình trưởng nhóm hoặc PIC trao đổi với shop." : "") : "Không cần xin giá: không cần ảnh duyệt giá và ảnh giá đối thủ.";
 }
 ["p_moc","p_hcm","p_tinh","p_khaigia","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung"].forEach(id => $(id).addEventListener("input", veXinGia));
 ["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
@@ -507,6 +509,7 @@ function localChecks(f){
     if (soTP(v("p_cu_ngung")) === null) e.push("Khách cũ: nhập số tháng đã ngừng gửi, vẫn gửi đều thì ghi 0 (mục 7)");
     if ((soTP(v("p_cu_ngung")) || 0) >= 2 && !images.chung_minh_sl.length) e.push("Khách cũ ngừng gửi từ 2 tháng: cần hình chứng minh sản lượng thay đổi (mục 8)");
   }
+  if (giaThap() <= 17000 && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình trưởng nhóm hoặc PIC trao đổi với shop (mục 8)");
   const xg = lyDoXinGia();
   if (xg.length && (!images.gia_doi_thu.length || !images.duyet_gia.length)) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD và ảnh giá đối thủ (mục 8)");
   return e;
@@ -655,7 +658,7 @@ $("btn-send").onclick = async () => {
     const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(e){}
     const paths = {};
     for (const [k, arr] of Object.entries(images)){ paths[k] = []; for (let i = 0; i < arr.length; i++){ const p = `/in/${code}_${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); paths[k].push(p); } }
-    paths.duyet_gia = (paths.duyet_gia || []).concat(paths.chung_minh_sl || []); delete paths.chung_minh_sl;
+    paths.duyet_gia = (paths.duyet_gia || []).concat(paths.chung_minh_sl || [], paths.truong_nhom || []); delete paths.chung_minh_sl; delete paths.truong_nhom;
     const r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO());
     if (!r.ok){ $("formmsg").textContent = ""; const box = $("checkout"); box.className = "note bad"; box.style.whiteSpace = "pre-wrap"; box.textContent = "Không tạo được file:\n" + (r.errors || []).join("\n") + (r.summary || ""); btn.disabled = false; return; }
     const m = py.pyimport("web_entry"); m.dong_goi(JSON.stringify(r.files), "/out/" + code + ".zip"); m.destroy();
