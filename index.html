@@ -227,91 +227,73 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 <!-- ===================== LÀM PHỤ LỤC ===================== -->
 <div id="view-pl" style="display:grid;gap:16px" hidden>
   <section class="card">
-    <h2><span class="n">2</span>File hợp đồng cũ của khách</h2>
-    <div class="hint">Tải lên 1 file đã làm lúc ký hợp đồng. Tốt nhất là <b>file tạo mã (.xlsx)</b>. Không còn thì dùng file hợp đồng Word (.docx), hoặc hợp đồng PDF / ảnh chụp (AI đọc, phải soát lại).</div>
-    <div class="row"><input type="file" id="pl_file" accept=".xlsx,.docx,application/pdf,image/*" multiple style="max-width:320px"><span id="pl_filemsg" class="hint"></span></div>
+    <h2><span class="n">2</span>Khách muốn đổi gì?</h2>
+    <div class="hint">Tick tất cả mục khách muốn đổi. Web tự biết phải làm phụ lục A, B hay C.</div>
+    <div class="chips" id="pl_doi">
+      <label><input type="checkbox" value="sdt">Số điện thoại</label>
+      <label><input type="checkbox" value="email">Gmail đối soát</label>
+      <label><input type="checkbox" value="diachi">Địa chỉ thường trú / trụ sở</label>
+      <label><input type="checkbox" value="bank">Tài khoản ngân hàng</label>
+      <label><input type="checkbox" value="ds">Lịch đối soát</label>
+      <label><input type="checkbox" value="gia">Giá cước</label>
+      <label><input type="checkbox" value="phi">Phí khai giá / chuyển hoàn</label>
+    </div>
+    <div id="pl_tags" class="hint"></div>
+    <div class="note">Đổi người đại diện, chức vụ hoặc người đứng tên hợp đồng: không làm phụ lục được, phải làm hợp đồng mới.</div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">3</span>Hồ sơ cũ của khách (bắt buộc cả 2 file)</h2>
+    <div style="display:grid;gap:6px">
+      <label for="pl_xlsx"><b>File tạo mã cũ (.xlsx)</b></label>
+      <div class="row"><input type="file" id="pl_xlsx" accept=".xlsx" style="max-width:320px"><span id="pl_xlsxmsg" class="hint"></span></div>
+    </div>
+    <div style="display:grid;gap:6px">
+      <label for="pl_hd"><b>Hợp đồng cũ (Word .docx hoặc PDF)</b></label>
+      <div class="row"><input type="file" id="pl_hd" accept=".docx,application/pdf" style="max-width:320px"><span id="pl_hdmsg" class="hint"></span></div>
+    </div>
     <div id="pl_info" class="note" hidden></div>
+    <div id="pl_cmp" class="note" hidden></div>
+    <label class="row" id="w_xnhd" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_hd" style="width:auto"> Tôi đã đối chiếu hợp đồng gốc với file tạo mã: số HĐ, tên, số tài khoản, địa chỉ, giá đều khớp.</label>
   </section>
 
   <div id="pl_main" style="display:grid;gap:16px" hidden>
   <section class="card">
-    <h2><span class="n">3</span>Thông tin hợp đồng gốc</h2>
+    <h2><span class="n">4</span>Thông tin phụ lục</h2>
     <div class="grid">
       <label><b>Mã KH J&amp;T (bắt buộc)</b><input id="pl_makh" placeholder="vd 028LC33021" autocomplete="off"></label>
       <label><b>Ngày làm phụ lục</b><input id="pl_ngay" type="date"></label>
       <label><b>Hình thức ký</b><select id="pl_ky"><option value="online">Ký online</option><option value="tay">Ký tay</option></select></label>
     </div>
-    <div id="pl_makhmsg" class="hint">Gõ mã KH đúng như trên hệ thống J&amp;T, không lấy từ file.</div>
-    <div class="grid">
-      <label style="grid-column:1/-1"><b>Số HĐ gốc</b><input id="pl_hdno"></label>
-      <label><b>Loại khách</b><select id="pl_loai"><option value="canhan">Cá nhân</option><option value="tochuc">Công ty / Hộ kinh doanh</option></select></label>
-      <label><b>Tên shop / công ty</b><input id="pl_T"></label>
-      <label><b>Người đại diện</b><input id="pl_U"></label>
-      <label><b>Chức vụ</b><input id="pl_V"></label>
-      <label><b>Số CCCD / Mã số thuế</b><input id="pl_W" inputmode="numeric"></label>
-      <label><b>Ngày cấp</b><input id="pl_X" placeholder="dd/mm/yyyy"></label>
-      <label style="grid-column:1/-1"><b>Nơi cấp</b><input id="pl_Y"></label>
-    </div>
-    <div class="hint">Đây là thông tin đứng tên hợp đồng, phụ lục không đổi được. Chỉ sửa khi file đọc sai.</div>
+    <div class="hint">Gõ mã KH đúng như trên hệ thống J&amp;T.</div>
   </section>
 
   <section class="card">
-    <h2><span class="n">4</span>Cần đổi gì</h2>
-    <div class="chips">
-      <label><input type="checkbox" id="pl_A">PLA · Đổi thông tin</label>
-      <label><input type="checkbox" id="pl_B">PLB · Đổi lịch đối soát</label>
-      <label><input type="checkbox" id="pl_C">PLC · Đổi giá, phí</label>
-    </div>
-
-    <div id="pnl_A" style="display:grid;gap:10px" hidden>
-      <div class="hint">Sửa ô cần đổi, ô khác để nguyên. Phụ lục A in lại đủ thông tin khách.</div>
-      <div class="grid">
-        <label><b>SĐT</b><input id="pa_AI" inputmode="tel"></label>
-        <label><b>Gmail nhận đối soát</b><input id="pa_AN" type="email"></label>
-        <label style="grid-column:1/-1"><b>Địa chỉ thường trú / trụ sở</b><input id="pa_AH"></label>
-        <label><b>Chủ tài khoản (IN HOA, không dấu)</b><input id="pa_AJ"></label>
-        <label><b>Số tài khoản</b><input id="pa_AK" inputmode="numeric" autocomplete="off"></label>
-        <label><b>Ngân hàng + chi nhánh</b><input id="pa_AL"></label>
-      </div>
-      <div class="chips" id="w_pltk" hidden><label><input type="checkbox" id="xn_pltk">Đã kiểm tra số tài khoản và tên chủ tài khoản mới</label></div>
-    </div>
-
-    <div id="pnl_B" style="display:grid;gap:10px" hidden>
-      <div class="hint" id="pb_cur"></div>
-      <label style="max-width:320px"><b>Lịch đối soát mới</b><select id="pb_AZ">
-        <option value="">Chọn lịch</option>
-        <option value="02 Lần / Tuần">2 lần/tuần (Thứ 3, Thứ 5)</option>
-        <option value="03 Lần / Tuần">3 lần/tuần (Thứ 2, 4, 6)</option>
-        <option value="05 Lần / Tuần">5 lần/tuần (Thứ 2 đến Thứ 6)</option>
-        <option value="1 Lần / Tháng">1 lần/tháng (cuối tháng)</option>
-      </select></label>
-    </div>
-
-    <div id="pnl_C" style="display:grid;gap:10px" hidden>
-      <div class="hint">Giá đang dùng:</div>
-      <pre class="prev" id="pc_cur">(chưa có)</pre>
-      <div class="hint">Phụ lục C thay toàn bộ bảng giá, phí cũ. Ghi giá số liền, vd 16000.</div>
-      <div class="grid">
-        <label><b>Mốc kg đầu</b><input id="pc_moc" inputmode="decimal" value="2"></label>
-        <label><b>Giá HCM - HCM</b><input id="pc_hcm" inputmode="numeric"></label>
-        <label><b>Giá HCM - Tỉnh</b><input id="pc_tinh" inputmode="numeric"></label>
-        <label><b>Mỗi kg tiếp theo</b><input id="pc_inc" inputmode="numeric" value="5000"></label>
-        <label><b>Phí khai giá (%)</b><input id="pc_kg" inputmode="decimal" value="1"></label>
-        <label><b>Phí chuyển hoàn</b><select id="pc_hoan"><option value="mien">Miễn phí</option><option value="50">50% cước</option></select></label>
-        <label><b>Sản lượng / tháng</b><input id="pc_sl" inputmode="numeric"></label>
-      </div>
-      <div style="display:grid;gap:6px">
-        <label for="pc_dg"><b>Ảnh duyệt giá của TPKD (bắt buộc khi giá dưới 19.000)</b></label>
-        <div class="row"><input type="file" id="pc_dg" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" id="pc_dg_x">Xóa ảnh</button></div>
-        <div class="files" id="t_pc_dg"></div>
-      </div>
-    </div>
+    <h2><span class="n">5</span>Đổi từ → sang</h2>
+    <div class="hint">Cột "Từ" web lấy từ file tạo mã cũ. Chỉ nhập cột "Sang".</div>
+    <div id="pl_trong" class="note">Chưa chọn mục cần đổi ở mục 2.</div>
+    <div class="tablewrap"><table id="pl_bang" hidden><thead><tr><th>Mục</th><th>Từ</th><th>Sang</th></tr></thead><tbody id="pl_rows"></tbody></table></div>
+    <div class="chips" id="w_pltk" hidden><label><input type="checkbox" id="xn_pltk">Đã kiểm tra số tài khoản và tên chủ tài khoản mới</label></div>
+    <div id="pl_xg" class="note" hidden></div>
   </section>
 
   <section class="card">
-    <h2><span class="n">5</span>Tin nhắn chốt với khách</h2>
-    <div class="row"><input type="file" id="pl_tn" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" id="pl_tn_x">Xóa ảnh</button></div>
-    <div class="files" id="t_pl_tn"></div>
+    <h2><span class="n">6</span>Ảnh</h2>
+    <div style="display:grid;gap:6px">
+      <label for="pl_tn"><b>1. Tin nhắn khách yêu cầu đổi <span style="color:var(--bad);font-weight:700">*</span></b></label>
+      <div class="row"><input type="file" id="pl_tn" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" id="pl_tn_x">Xóa ảnh</button></div>
+      <div class="files" id="t_pl_tn"></div>
+    </div>
+    <div style="display:grid;gap:6px">
+      <label for="pl_dg"><b>2. Hình xin giá lại với TPKD (bắt buộc khi giảm giá hoặc giảm phí)<span class="req" id="rq_dg" style="color:var(--bad);font-weight:700" hidden> *</span></b></label>
+      <div class="row"><input type="file" id="pl_dg" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" id="pl_dg_x">Xóa ảnh</button></div>
+      <div class="files" id="t_pl_dg"></div>
+    </div>
+    <div style="display:grid;gap:6px">
+      <label for="pl_mc"><b>3. Hình minh chứng cần giảm giá: sản lượng tăng, giá đối thủ… (bắt buộc khi giảm giá hoặc giảm phí)<span class="req" id="rq_mc" style="color:var(--bad);font-weight:700" hidden> *</span></b></label>
+      <div class="row"><input type="file" id="pl_mc" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" id="pl_mc_x">Xóa ảnh</button></div>
+      <div class="files" id="t_pl_mc"></div>
+    </div>
   </section>
 
   <div id="pl_checkout" class="note" hidden></div>
@@ -711,14 +693,14 @@ function showTab(t){
 $("tab-hd").onclick = () => showTab("hd");
 $("tab-pl").onclick = () => showTab("pl");
 
-let PL = null;          // kết quả đọc file cũ: {nguon, hd_no, ngay_hd, canhan, ma_kh, da_co, hien_tai, sheet, dong_hd}
-let plOld = null;       // đường dẫn file tạo mã cũ trong bộ tạo file (chỉ khi tải .xlsx)
+let PL = null;          // đọc từ file tạo mã cũ: {hd_no, ngay_hd, canhan, ma_kh, da_co, hien_tai, sheet, dong_hd}
+let plOld = null;       // đường dẫn file tạo mã cũ trong bộ tạo file
+let plHD = null;        // hợp đồng cũ: {loai:'docx'|'pdf', data, loi}
 let plChecked = null;
-const plImgs = {tn: [], dg: []};
-const ID_COLS = ["T","U","V","W","X","Y"], PLA_COLS = ["AI","AN","AH","AJ","AK","AL"];
+const plImgs = {tn: [], dg: [], mc: []};
 const unacc = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
 const plInvalidate = () => { plChecked = null; $("pl_send").disabled = true; };
-$("view-pl").addEventListener("input", e => { if (e.target.type !== "file") { plInvalidate(); e.target.style.borderColor = ""; } });
+$("view-pl").addEventListener("input", e => { if (e.target.type !== "file") plInvalidate(); });
 $("view-pl").addEventListener("change", e => { if (e.target.type !== "file") plInvalidate(); });
 
 /* bảng giá trong cột AU -> các ô giá */
@@ -750,137 +732,261 @@ function tuAI(d){
   return {ok: true, nguon: "ai", hd_no: s(d.hd_no), ngay_hd: s(d.ngay_hd), canhan, ma_kh: "", da_co: [], hien_tai: c, canh_bao: s(d.canh_bao)};
 }
 
-function plFill(r){
-  PL = r; const c = r.hien_tai || {};
-  $("pl_hdno").value = r.hd_no || ""; $("pl_loai").value = r.canhan ? "canhan" : "tochuc";
-  ID_COLS.forEach(k => $("pl_" + k).value = c[k] || "");
-  PLA_COLS.forEach(k => $("pa_" + k).value = c[k] || "");
-  $("pl_makh").value = ""; $("pl_ngay").value = todayISO();
-  $("pb_cur").textContent = "Lịch đang dùng: " + (c.AZ || "(chưa rõ)");
-  $("pc_cur").textContent = c.AU || "(chưa có)";
-  const g = docGia(c.AU); if (g.moc) $("pc_moc").value = g.moc; if (g.hcm) $("pc_hcm").value = g.hcm; if (g.tinh) $("pc_tinh").value = g.tinh; if (g.inc) $("pc_inc").value = g.inc;
-  if (c.AW) $("pc_kg").value = String(Math.round(Number(c.AW) * 10000) / 100);
-  $("pc_hoan").value = /50/.test(c.AY || "") ? "50" : "mien"; $("pc_sl").value = c.AO || "";
-  if (r.nguon === "ai") [...ID_COLS.map(k => "pl_" + k), ...PLA_COLS.map(k => "pa_" + k), "pl_hdno"].forEach(id => { if ($(id).value) $(id).style.borderColor = "var(--warn)"; });
-  const han = (() => { const m = (r.hd_no || "").match(/^\s*(\d{2})(\d{2})(\d{2})\s*\//); if (!m) return null; const d = new Date(2000 + +m[3], +m[2] - 1, +m[1]); d.setDate(d.getDate() + 364); return d; })();
-  const box = $("pl_info"); box.hidden = false;
-  const het = han && han < new Date(todayISO());
-  box.className = "note " + (het ? "bad" : (r.nguon === "ai" ? "warn" : "ok"));
-  box.innerHTML = `Số HĐ: <b>${esc(r.hd_no || "(chưa đọc được)")}</b><br>Ngày ký: <b>${esc(r.ngay_hd || "?")}</b>` +
-    (han ? ` · hết hạn ${esc(han.toLocaleDateString("vi-VN"))}` + (het ? " — <b>đã hết hạn, phải làm hợp đồng mới</b>" : "") : "") +
-    `<br>Phụ lục đã có: <b>${esc((r.da_co || []).join(", ") || "chưa có")}</b>` +
-    (r.ma_kh ? `<br>Mã KH ghi trong file: ${esc(r.ma_kh)} (vẫn phải tự gõ lại ở mục 3)` : "") +
-    (r.nguon === "ai" ? `<br>AI đọc từ PDF/ảnh: đối chiếu các ô viền vàng với hợp đồng gốc.` + (r.canh_bao ? " Lưu ý: " + esc(r.canh_bao) : "") : "") +
-    (r.nguon === "xlsx" ? "" : `<br>Không có file tạo mã cũ nên file tạo mã phụ lục sẽ là file mới.`);
-  $("pl_main").hidden = false; plInvalidate();
+
+/* ---------- bước 2: khách muốn đổi gì -> phụ lục nào ---------- */
+const DOI_PL = {sdt: "PLA", email: "PLA", diachi: "PLA", bank: "PLA", ds: "PLB", gia: "PLC", phi: "PLC"};
+const TEN_PL = {PLA: "PLA (đổi thông tin)", PLB: "PLB (đổi lịch đối soát)", PLC: "PLC (đổi giá, phí)"};
+const doiChon = () => [...document.querySelectorAll("#pl_doi input:checked")].map(x => x.value);
+const plTags = () => [...new Set(doiChon().map(k => DOI_PL[k]))].sort();
+const HOAN_50 = "50% (năm mươi phần trăm) cước vận chuyển";
+const pctTxt = aw => (aw === "" || aw === null || aw === undefined || isNaN(Number(aw))) ? "" : String(Math.round(Number(aw) * 10000) / 100);
+const so = s => Number(String(s ?? "").replace(/[^\d]/g, "")) || 0;
+const soTP2 = s => { const t = String(s ?? "").trim().replace(",", ".").replace("%", ""); return t === "" || isNaN(Number(t)) ? null : Number(t); };
+const nho = id => { const el = $(id); return el ? el.value : undefined; };
+
+/* ---------- bước 5: bảng Từ -> Sang ---------- */
+function veBang(){
+  const c = (PL && PL.hien_tai) || {}, ch = doiChon(), tb = $("pl_rows");
+  const giu = {}; tb.querySelectorAll("input,select").forEach(el => giu[el.id] = el.value);
+  const g = docGia(c.AU), rows = [];
+  const o = (id, ph, mode) => `<input id="${id}" value="${esc(giu[id] ?? "")}"${ph ? ` placeholder="${esc(ph)}"` : ""}${mode ? ` inputmode="${mode}"` : ""}>`;
+  if (ch.includes("sdt")) rows.push(["SĐT", c.AI, o("pa_AI", "10 số", "tel")]);
+  if (ch.includes("email")) rows.push(["Gmail đối soát", c.AN, o("pa_AN", "...@gmail.com", "email")]);
+  if (ch.includes("diachi")) rows.push(["Địa chỉ thường trú / trụ sở", c.AH, o("pa_AH", "chép y chang giấy tờ mới")]);
+  if (ch.includes("bank")){
+    rows.push(["Chủ tài khoản", c.AJ, o("pa_AJ", "IN HOA, không dấu")]);
+    rows.push(["Số tài khoản", c.AK, o("pa_AK", "", "numeric")]);
+    rows.push(["Ngân hàng + chi nhánh", c.AL, o("pa_AL")]);
+  }
+  if (ch.includes("ds")){
+    const opt = [["", "Chọn lịch mới"], ["02 Lần / Tuần", "2 lần/tuần (T3, T5)"], ["03 Lần / Tuần", "3 lần/tuần (T2, T4, T6)"], ["05 Lần / Tuần", "5 lần/tuần (T2–T6)"], ["1 Lần / Tháng", "1 lần/tháng"]];
+    rows.push(["Lịch đối soát", c.AZ, `<select id="pb_AZ">${opt.map(([v, t]) => `<option value="${esc(v)}"${(giu.pb_AZ ?? "") === v ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`]);
+  }
+  if (ch.includes("gia")){
+    rows.push(["Mốc kg đầu", g.moc ? g.moc + "kg" : "", o("pc_moc", g.moc || "2", "decimal")]);
+    rows.push(["Giá HCM → HCM", g.hcm ? fmtVN(g.hcm) : "", o("pc_hcm", "", "numeric")]);
+    rows.push(["Giá HCM → tỉnh", g.tinh ? fmtVN(g.tinh) : "", o("pc_tinh", "", "numeric")]);
+    rows.push(["Mỗi kg tiếp theo", g.inc ? "+" + fmtVN(g.inc) : "", o("pc_inc", g.inc || "5000", "numeric")]);
+  }
+  if (ch.includes("phi")){
+    rows.push(["Phí khai giá (%)", pctTxt(c.AW) ? pctTxt(c.AW) + "%" : "", o("pc_kg", "vd 0.5", "decimal")]);
+    const hc = /50/.test(c.AY || "") ? "50% cước" : (c.AY ? "Miễn phí" : "");
+    rows.push(["Phí chuyển hoàn", hc, `<select id="pc_hoan"><option value="">Giữ như cũ</option><option value="mien"${giu.pc_hoan === "mien" ? " selected" : ""}>Miễn phí</option><option value="50"${giu.pc_hoan === "50" ? " selected" : ""}>50% cước</option></select>`]);
+  }
+  tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${esc(tu || "(trống)")}</td><td>${sang}</td></tr>`).join("");
+  $("pl_bang").hidden = !rows.length; $("pl_trong").hidden = !!rows.length;
+  $("w_pltk").hidden = !ch.includes("bank");
+  const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x]).join(" + ") : "";
+  veAnhPL(); plInvalidate();
+}
+const fmtVN = n => Number(n || 0).toLocaleString("vi-VN");
+$("pl_doi").addEventListener("change", veBang);
+$("pl_rows").addEventListener("input", veAnhPL);
+$("pl_rows").addEventListener("change", veAnhPL);
+$("pl_rows").addEventListener("change", e => { if (e.target.id === "pa_AJ") e.target.value = unacc(e.target.value).toUpperCase(); if (e.target.id === "pa_AI" || e.target.id === "pa_AK") e.target.value = e.target.value.replace(/\s/g, ""); });
+
+/* ---------- giảm giá / giảm phí -> bắt hình xin giá lại + minh chứng ---------- */
+function lyDoGiam(){
+  if (!PL) return [];
+  const c = PL.hien_tai || {}, ch = doiChon(), g = docGia(c.AU), r = [];
+  if (ch.includes("gia")){
+    const moi = {moc: soTP2(nho("pc_moc")), hcm: so(nho("pc_hcm")), tinh: so(nho("pc_tinh")), inc: so(nho("pc_inc"))};
+    if (moi.hcm && Number(g.hcm) && moi.hcm < Number(g.hcm)) r.push("giá HCM → HCM thấp hơn giá cũ");
+    if (moi.tinh && Number(g.tinh) && moi.tinh < Number(g.tinh)) r.push("giá HCM → tỉnh thấp hơn giá cũ");
+    if (moi.inc && Number(g.inc) && moi.inc < Number(g.inc)) r.push("giá mỗi kg tiếp theo thấp hơn giá cũ");
+    if (moi.moc && Number(g.moc) && moi.moc > Number(g.moc)) r.push("mốc kg đầu tăng (khách được đi nặng hơn cùng giá)");
+  }
+  if (ch.includes("phi")){
+    const kg = soTP2(nho("pc_kg")), cu = c.AW === "" || c.AW === undefined ? null : Number(c.AW) * 100;
+    if (kg !== null && cu !== null && kg < cu) r.push("phí khai giá giảm");
+    if (nho("pc_hoan") === "mien" && /50/.test(c.AY || "")) r.push("chuyển hoàn đổi từ 50% sang miễn phí");
+  }
+  return r;
+}
+function veAnhPL(){
+  const r = lyDoGiam(), n = $("pl_xg");
+  $("rq_dg").hidden = !r.length; $("rq_mc").hidden = !r.length;
+  if (!doiChon().some(k => k === "gia" || k === "phi")){ n.hidden = true; return; }
+  n.hidden = false; n.className = "note " + (r.length ? "warn" : "ok");
+  n.textContent = r.length ? "Giảm cho khách (" + r.join("; ") + "): mục 6 bắt buộc hình xin giá lại với TPKD và hình minh chứng." : "Không giảm giá, phí: không cần hình xin giá lại và minh chứng.";
 }
 
-$("pl_file").onchange = async e => {
-  const fs = [...e.target.files]; e.target.value = ""; if (!fs.length) return;
-  const msg = $("pl_filemsg"); PL = null; plOld = null; $("pl_main").hidden = true; $("pl_info").hidden = true;
+/* ---------- bước 3: đọc file tạo mã cũ ---------- */
+function veThongTin(){
+  const r = PL, c = r.hien_tai || {}, box = $("pl_info");
+  const han = (() => { const m = (r.hd_no || "").match(/^\s*(\d{2})(\d{2})(\d{2})\s*\//); if (!m) return null; const d = new Date(2000 + +m[3], +m[2] - 1, +m[1]); d.setDate(d.getDate() + 364); return d; })();
+  const het = han && han < new Date(todayISO());
+  box.hidden = false; box.className = "note " + (het ? "bad" : "ok");
+  box.innerHTML = `Khách: <b>${esc(r.canhan ? (c.U || c.T) : c.T)}</b> (${r.canhan ? "cá nhân" : "công ty / hộ KD"})<br>Số HĐ: <b>${esc(r.hd_no || "(không đọc được)")}</b> · Ngày ký: <b>${esc(r.ngay_hd || "?")}</b>` +
+    (han ? ` · hết hạn ${esc(han.toLocaleDateString("vi-VN"))}` + (het ? " — <b>đã hết hạn, phải làm hợp đồng mới</b>" : "") : "") +
+    `<br>Phụ lục đã có: <b>${esc((r.da_co || []).join(", ") || "chưa có")}</b>`;
+}
+$("pl_xlsx").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const msg = $("pl_xlsxmsg"); PL = null; plOld = null; $("pl_main").hidden = true; $("pl_info").hidden = true;
   try {
-    const f0 = fs[0], ten = f0.name.toLowerCase();
-    if (/\.(xlsx|docx)$/.test(ten)){
-      msg.textContent = "Đang đọc file...";
-      const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(_){}
-      const p = "/in/old" + (ten.endsWith(".xlsx") ? ".xlsx" : ".docx");
-      FS.writeFile(p, new Uint8Array(await f0.arrayBuffer()));
-      let m; try { m = py.pyimport("pl"); } catch(_){ throw new Error("bộ tạo file trên trang chưa cập nhật bản có phụ lục, báo trưởng nhóm"); }
-      let r; try { r = JSON.parse(ten.endsWith(".xlsx") ? m.doc_file_cu(p) : m.doc_word(p)); } finally { m.destroy(); }
-      if (!r.ok) throw new Error(r.error);
-      if (ten.endsWith(".xlsx")) plOld = p;
-      msg.textContent = ""; plFill(r);
-    } else {
-      if (!API) throw new Error("trang chưa nối với Google Sheet");
-      if (CFG && !CFG.ocr) throw new Error("chủ trang chưa cài khóa Gemini, hãy dùng file .xlsx hoặc .docx");
-      msg.textContent = "AI đang đọc hợp đồng (khoảng 20–60 giây)...";
-      const files = [];
-      for (const f of fs.slice(0, 8)){
-        if (f.type === "application/pdf"){ if (f.size > 15e6) throw new Error("file PDF quá lớn (trên 15MB)"); files.push({mime: "application/pdf", b64: await blobToB64(f)}); }
-        else files.push({mime: "image/jpeg", b64: await blobToB64(await smallJpeg(f))});
-      }
-      const r = await apiPost({action: "hopdong", files});
-      if (!r.ok) throw new Error(r.error);
-      msg.textContent = ""; plFill(tuAI(r.data || {}));
-    }
+    if (!/\.xlsx$/i.test(f.name)) throw new Error("phải là file .xlsx (file tạo mã)");
+    msg.textContent = "Đang đọc file tạo mã...";
+    const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(_){}
+    FS.writeFile("/in/old.xlsx", new Uint8Array(await f.arrayBuffer()));
+    let m; try { m = py.pyimport("pl"); } catch(_){ throw new Error("bộ tạo file trên trang chưa có phần phụ lục, báo trưởng nhóm"); }
+    let r; try { r = JSON.parse(m.doc_file_cu("/in/old.xlsx")); } finally { m.destroy(); }
+    if (!r.ok) throw new Error(r.error);
+    PL = r; plOld = "/in/old.xlsx"; msg.textContent = "Đã đọc: " + f.name;
+    veThongTin(); $("pl_main").hidden = false; $("pl_ngay").value = $("pl_ngay").value || todayISO();
+    veBang(); soHD();
   } catch(err){ msg.textContent = "Không đọc được: " + (err && err.message || err); }
 };
 
-/* bật/tắt từng loại phụ lục */
-[["A","pnl_A"],["B","pnl_B"],["C","pnl_C"]].forEach(([k, p]) => $("pl_" + k).addEventListener("change", () => { $(p).hidden = !$("pl_" + k).checked; }));
-["pa_AJ","pa_AK","pa_AL"].forEach(id => $(id).addEventListener("input", () => {
-  const c = (PL && PL.hien_tai) || {}; const doi = ["AJ","AK","AL"].some(k => v("pa_" + k) !== (c[k] || ""));
-  $("w_pltk").hidden = !doi; $("xn_pltk").checked = false; }));
-$("pa_AJ").addEventListener("change", () => { $("pa_AJ").value = unacc(v("pa_AJ")).toUpperCase(); });
-$("pl_makh").addEventListener("change", () => { $("pl_makh").value = v("pl_makh").replace(/\s/g,"").toUpperCase(); });
+/* ---------- bước 3: hợp đồng cũ -> đối chiếu với file tạo mã ---------- */
+const chuan = s => unacc(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+function soSanh(a, b){   // a: file tạo mã, b: hợp đồng
+  const A = a.hien_tai || {}, B = b.hien_tai || {}, lech = [];
+  const cmp = (ten, x, y, kieu) => {
+    if (!String(x || "").trim() || !String(y || "").trim()) return;
+    const p = kieu === "so" ? String(x).replace(/\D/g, "") : chuan(x), q = kieu === "so" ? String(y).replace(/\D/g, "") : chuan(y);
+    if (p !== q && !(p.length > 6 && q.length > 6 && (p.includes(q) || q.includes(p)))) lech.push(`${ten}: file tạo mã "${x}" ≠ hợp đồng "${y}"`);
+  };
+  cmp("Số HĐ", a.hd_no, b.hd_no);
+  cmp("Tên đứng HĐ", a.canhan ? A.U : A.T, a.canhan ? (B.U || B.T) : B.T);
+  cmp("SĐT", A.AI, B.AI, "so"); cmp("Gmail", A.AN, B.AN); cmp("Địa chỉ", A.AH, B.AH);
+  cmp("Chủ TK", A.AJ, B.AJ); cmp("Số TK", A.AK, B.AK, "so"); cmp("Ngân hàng", A.AL, B.AL);
+  if (A.AZ && B.AZ && bfeKey(A.AZ) !== bfeKey(B.AZ)) lech.push(`Lịch đối soát: file tạo mã "${A.AZ}" ≠ hợp đồng "${B.AZ}"`);
+  const ga = docGia(A.AU), gb = docGia(B.AU);
+  for (const [k, t] of [["hcm", "Giá HCM → HCM"], ["tinh", "Giá HCM → tỉnh"], ["moc", "Mốc kg đầu"], ["inc", "Mỗi kg tiếp theo"]])
+    if (ga[k] && gb[k] && Number(ga[k]) !== Number(gb[k])) lech.push(`${t}: file tạo mã ${ga[k]} ≠ hợp đồng ${gb[k]}`);
+  if (pctTxt(A.AW) && pctTxt(B.AW) && pctTxt(A.AW) !== pctTxt(B.AW)) lech.push(`Phí khai giá: file tạo mã ${pctTxt(A.AW)}% ≠ hợp đồng ${pctTxt(B.AW)}%`);
+  return lech;
+}
+const bfeKey = v => { const u = unacc(v).toUpperCase(); if (/THANG/.test(u)) return "T"; const m = u.match(/0?([235])\s*LAN/); return m ? m[1] : u; };
+function soHD(){
+  const box = $("pl_cmp"), w = $("w_xnhd");
+  if (!plHD){ box.hidden = true; w.hidden = true; return; }
+  if (plHD.loi){ box.hidden = false; box.className = "note warn"; box.textContent = "Chưa đọc được hợp đồng để đối chiếu (" + plHD.loi + "). Tự đối chiếu với HĐ gốc rồi tick xác nhận bên dưới."; w.hidden = false; return; }
+  if (!PL){ box.hidden = false; box.className = "note"; box.textContent = "Đã nhận hợp đồng. Tải thêm file tạo mã để web đối chiếu."; w.hidden = true; return; }
+  const lech = soSanh(PL, plHD.data), ai = plHD.loai === "pdf";
+  box.hidden = false;
+  if (!lech.length){ box.className = "note ok"; box.textContent = ai ? "AI đọc hợp đồng PDF: khớp với file tạo mã. AI vẫn có thể đọc sót, tự xem lại rồi tick xác nhận." : "Hợp đồng Word khớp với file tạo mã."; }
+  else {
+    box.className = "note warn";
+    box.innerHTML = `<b>Hợp đồng và file tạo mã lệch ${lech.length} chỗ</b>` + (ai ? " (AI đọc PDF, có thể do AI đọc sai)" : "") + ":<ul>" + lech.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" +
+      ((PL.da_co || []).length ? `Khách đã có ${esc(PL.da_co.join(", "))} nên lệch ở mục đã đổi bằng phụ lục là bình thường. ` : "") + "Kiểm tra lại với HĐ gốc rồi tick xác nhận bên dưới.";
+  }
+  w.hidden = !(ai || lech.length); if (w.hidden) $("xn_hd").checked = true; else $("xn_hd").checked = false;
+}
+$("pl_hd").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  const msg = $("pl_hdmsg"); plHD = null; soHD(); plInvalidate();
+  try {
+    if (/\.docx$/i.test(f.name)){
+      msg.textContent = "Đang đọc hợp đồng Word...";
+      const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(_){}
+      FS.writeFile("/in/hd_cu.docx", new Uint8Array(await f.arrayBuffer()));
+      let m; try { m = py.pyimport("pl"); } catch(_){ throw new Error("bộ tạo file trên trang chưa có phần phụ lục, báo trưởng nhóm"); }
+      let r; try { r = JSON.parse(m.doc_word("/in/hd_cu.docx")); } finally { m.destroy(); }
+      plHD = r.ok ? {loai: "docx", data: r} : {loai: "docx", loi: r.error || "file không theo mẫu"};
+      msg.textContent = "Đã nhận: " + f.name;
+    } else if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)){
+      if (f.size > 15e6) throw new Error("file PDF trên 15MB, nén nhỏ lại hoặc dùng bản Word");
+      plHD = {loai: "pdf", loi: "đang chờ AI đọc"}; msg.textContent = "Đã nhận: " + f.name + ". AI đang đọc để đối chiếu (30–90 giây)..."; soHD();
+      try {
+        if (!API) throw new Error("trang chưa nối Google Sheet");
+        if (CFG && !CFG.ocr) throw new Error("chưa cài khóa Gemini");
+        const r = await apiPost({action: "hopdong", files: [{mime: "application/pdf", b64: await blobToB64(f)}]});
+        if (!r.ok) throw new Error(r.error);
+        plHD = {loai: "pdf", data: tuAI(r.data || {})}; msg.textContent = "Đã nhận: " + f.name;
+      } catch(err){ plHD = {loai: "pdf", loi: String(err && err.message || err)}; msg.textContent = "Đã nhận: " + f.name; }
+    } else throw new Error("chỉ nhận file Word (.docx) hoặc PDF");
+  } catch(err){ plHD = null; msg.textContent = "Không nhận được: " + (err && err.message || err); }
+  soHD();
+};
+$("pl_makh").addEventListener("change", () => { $("pl_makh").value = v("pl_makh").replace(/\s/g, "").toUpperCase(); });
 
-/* ảnh */
+/* ---------- ảnh ---------- */
 async function plAddImgs(k, files){
   for (const f of files){ if (f.type === "application/pdf") plImgs[k].push(...await pdfToImages(f)); else plImgs[k].push(await normalizeImage(f)); }
 }
-function plThumbs(k){ const el = $("t_" + (k === "tn" ? "pl_tn" : "pc_dg")); el.innerHTML = "";
+function plThumbs(k){ const el = $("t_pl_" + k); el.innerHTML = "";
   plImgs[k].forEach(im => { const t = document.createElement("img"); t.className = "thumb"; t.alt = ""; t.src = URL.createObjectURL(im.blob); el.appendChild(t); }); }
-[["tn","pl_tn"],["dg","pc_dg"]].forEach(([k, id]) => {
-  $(id).onchange = async e => { $("pl_msg").textContent = "Đang đọc ảnh...";
+["tn", "dg", "mc"].forEach(k => {
+  $("pl_" + k).onchange = async e => { $("pl_msg").textContent = "Đang đọc ảnh...";
     try { await plAddImgs(k, [...e.target.files]); $("pl_msg").textContent = ""; } catch(err){ $("pl_msg").textContent = "Không đọc được 1 file ảnh, thử ảnh PNG/JPG."; }
     e.target.value = ""; plThumbs(k); plInvalidate(); };
-  $(id + "_x").onclick = () => { plImgs[k] = []; plThumbs(k); plInvalidate(); };
+  $("pl_" + k + "_x").onclick = () => { plImgs[k] = []; plThumbs(k); plInvalidate(); };
 });
 
+/* ---------- gom yêu cầu cho bộ tạo file ---------- */
 function plReq(){
-  const c = Object.assign({}, PL.hien_tai);
-  c.R = v("pl_loai") === "canhan" ? "Cá nhân" : "Công Ty ";
-  ID_COLS.forEach(k => c[k] = v("pl_" + k));
-  const loai_doi = [], moi = {};
-  if ($("pl_A").checked){ loai_doi.push("PLA"); PLA_COLS.forEach(k => moi[k] = v("pa_" + k)); }
-  if ($("pl_B").checked){ loai_doi.push("PLB"); moi.AZ = v("pb_AZ"); }
-  if ($("pl_C").checked){ loai_doi.push("PLC");
-    const n = id => v(id).replace(/[.\s,đ]/g, "");
-    moi.AU = viecGia(v("pc_moc").replace(",", "."), n("pc_hcm"), n("pc_tinh"), n("pc_inc"));
-    moi.AW = String(Number(v("pc_kg").replace(",", ".").replace("%", "")) / 100);
-    moi.AY = v("pc_hoan") === "50" ? "50% (năm mươi phần trăm) cước vận chuyển" : "Miễn phí chuyển hoàn";
-    moi.AX = "Miễn phí phí thu hộ"; moi.AV = "KHÔNG"; if (n("pc_sl")) moi.AO = n("pc_sl"); }
+  const c = Object.assign({}, PL.hien_tai), ch = doiChon(), tags = plTags(), moi = {};
+  for (const [k, cols] of [["sdt", ["AI"]], ["email", ["AN"]], ["diachi", ["AH"]], ["bank", ["AJ", "AK", "AL"]]])
+    if (ch.includes(k)) for (const col of cols) moi[col] = (nho("pa_" + col) || "").trim();
+  if (ch.includes("ds")) moi.AZ = nho("pb_AZ") || "";
+  if (tags.includes("PLC")){
+    const g = docGia(c.AU);
+    if (ch.includes("gia")){
+      const moc = String(soTP2(nho("pc_moc")) || g.moc || 2);
+      moi.AU = viecGia(moc, so(nho("pc_hcm")) || g.hcm || "", so(nho("pc_tinh")) || g.tinh || "", so(nho("pc_inc")) || g.inc || 5000);
+    }
+    if (ch.includes("phi")){
+      const kg = soTP2(nho("pc_kg")); if (kg !== null) moi.AW = String(kg / 100);
+      if (nho("pc_hoan") === "mien") moi.AY = "Miễn phí chuyển hoàn"; else if (nho("pc_hoan") === "50") moi.AY = HOAN_50;
+    }
+    if (!c.AX) moi.AX = "Miễn phí phí thu hộ";
+    if (!c.AV) moi.AV = "KHÔNG";
+  }
   const [y, m, d] = (v("pl_ngay") || todayISO()).split("-");
-  return {sale: {ten: v("s_ten"), msnv: v("s_msnv"), khu: v("s_khu"), sdt: v("s_sdt")}, ma_kh: v("pl_makh").replace(/\s/g,"").toUpperCase(),
-    ngay: `${d}/${m}/${y}`, loai_doi, hien_tai: c, hd_no: v("pl_hdno"), da_co: PL.da_co || [], sheet: PL.sheet || "MẪU HĐ",
+  return {sale: {ten: v("s_ten"), msnv: v("s_msnv"), khu: v("s_khu"), sdt: v("s_sdt")}, ma_kh: v("pl_makh").replace(/\s/g, "").toUpperCase(),
+    ngay: `${d}/${m}/${y}`, loai_doi: tags, hien_tai: c, hd_no: PL.hd_no, da_co: PL.da_co || [], sheet: PL.sheet || "MẪU HĐ",
     dong_hd: PL.dong_hd || 2, moi, ky: v("pl_ky")};
 }
 function plLocal(q){
-  const e = [];
+  const e = [], ch = doiChon();
   if (!v("s_ten") || !v("s_msnv")) e.push("Thiếu họ tên hoặc mã nhân viên sale (mục 1)");
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v("s_email"))) e.push("Thiếu email nhận file (mục 1)");
   if (CFG && CFG.canMaNhom && !v("s_manhom")) e.push("Thiếu mã nhóm (mục 1)");
-  if (!q.hd_no) e.push("Thiếu số HĐ gốc (mục 3)");
-  if (PL.ma_kh && q.ma_kh && PL.ma_kh !== q.ma_kh) e.push(`Mã KH gõ (${q.ma_kh}) khác mã trong file (${PL.ma_kh}). Kiểm tra lại trên hệ thống J&T`);
-  if (q.loai_doi.includes("PLA") && !$("w_pltk").hidden && !$("xn_pltk").checked) e.push("Chưa tick đã kiểm tra số tài khoản và tên chủ tài khoản mới (mục 4)");
-  if (q.loai_doi.includes("PLC")){
-    const g = [v("pc_hcm"), v("pc_tinh")].map(x => Number(x.replace(/\D/g, "")));
-    if (g.some(x => !x)) e.push("PLC: thiếu giá HCM - HCM hoặc HCM - Tỉnh");
-    else if (Math.min(...g) < 19000 && !plImgs.dg.length) e.push("PLC: giá dưới 19.000 cần ảnh duyệt giá của TPKD");
-    if (!(Number(v("pc_kg").replace(",", ".")) >= 0) || v("pc_kg") === "") e.push("PLC: thiếu phí khai giá");
+  if (!ch.length) e.push("Chưa chọn khách muốn đổi gì (mục 2)");
+  if (!plHD) e.push("Chưa tải hợp đồng cũ (mục 3)");
+  else if (!$("w_xnhd").hidden && !$("xn_hd").checked) e.push("Chưa tick đã đối chiếu hợp đồng gốc với file tạo mã (mục 3)");
+  if (!q.ma_kh) e.push("Chưa gõ mã KH (mục 4)");
+  else if (PL.ma_kh && PL.ma_kh !== q.ma_kh) e.push(`Mã KH gõ (${q.ma_kh}) khác mã trong file tạo mã (${PL.ma_kh}). Kiểm tra lại trên hệ thống J&T`);
+  const trong = [["sdt", "pa_AI", "SĐT mới"], ["email", "pa_AN", "Gmail mới"], ["diachi", "pa_AH", "địa chỉ mới"]].filter(([k, id]) => ch.includes(k) && !nho(id).trim()).map(x => x[2]);
+  if (trong.length) e.push("Chưa nhập " + trong.join(", ") + " (mục 5)");
+  if (ch.includes("bank")){
+    if (!["pa_AJ", "pa_AK", "pa_AL"].some(id => nho(id).trim())) e.push("Chưa nhập tài khoản ngân hàng mới (mục 5)");
+    if (!$("xn_pltk").checked) e.push("Chưa tick đã kiểm tra số tài khoản và tên chủ tài khoản mới (mục 5)");
   }
-  if (!plImgs.tn.length) e.push("Thiếu ảnh tin nhắn chốt với khách (mục 5)");
+  if (ch.includes("ds") && !nho("pb_AZ")) e.push("Chưa chọn lịch đối soát mới (mục 5)");
+  if (ch.includes("gia") && !so(nho("pc_hcm")) && !so(nho("pc_tinh"))) e.push("Chưa nhập giá mới (mục 5)");
+  if (ch.includes("phi") && soTP2(nho("pc_kg")) === null && !nho("pc_hoan")) e.push("Chưa nhập phí mới (mục 5)");
+  if (!plImgs.tn.length) e.push("Thiếu tin nhắn khách yêu cầu đổi (mục 6)");
+  const giam = lyDoGiam();
+  if (giam.length && !plImgs.dg.length) e.push("Giảm cho khách (" + giam.join("; ") + "): cần hình xin giá lại với TPKD (mục 6)");
+  if (giam.length && !plImgs.mc.length) e.push("Giảm cho khách: cần hình minh chứng (sản lượng tăng, giá đối thủ…) (mục 6)");
   return e;
 }
 function plErr(errs){ const box = $("pl_checkout"); box.hidden = false; box.className = "note bad"; box.innerHTML = "<b>Cần sửa trước khi gửi:</b><ul>" + errs.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>"; }
 
 async function plRun(code){
   const q = plReq(); const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(_){}
-  const tn = [];
-  for (const [k, arr] of [["tn", plImgs.tn], ["dg", plImgs.dg]]) for (let i = 0; i < arr.length; i++){
-    const p = `/in/${code}_pl${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); tn.push(p); }
+  const anh = [];
+  for (const k of ["tn", "dg", "mc"]) for (let i = 0; i < plImgs[k].length; i++){
+    const p = `/in/${code}_pl${k}_${i}.${plImgs[k][i].ext}`; FS.writeFile(p, new Uint8Array(await plImgs[k][i].blob.arrayBuffer())); anh.push(p); }
   const m = py.pyimport("pl");
-  try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: tn}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
+  try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: anh}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
   finally { m.destroy(); }
 }
 $("pl_check").onclick = async () => {
-  if (!PL) return; const box = $("pl_checkout"); box.hidden = false; box.className = "note"; box.textContent = "Đang kiểm tra...";
+  const box = $("pl_checkout"); box.hidden = false;
+  if (!PL){ plErr(["Chưa tải file tạo mã cũ (mục 3)"]); return; }
+  box.className = "note"; box.textContent = "Đang kiểm tra...";
   store.set("jt-sale", {s_ten:v("s_ten"), s_msnv:v("s_msnv"), s_khu:v("s_khu"), s_sdt:v("s_sdt"), s_bc:v("s_bc"), s_email:v("s_email"), s_manhom:v("s_manhom")});
-  const q = plReq(); const e1 = plLocal(q);
-  let r;
-  try { r = await plRun("PLTEST"); } catch(err){ box.className = "note bad"; box.textContent = "Không tải được bộ tạo file. Kiểm tra mạng rồi bấm lại."; return; }
+  const q = plReq(), e1 = plLocal(q);
+  let r = {ok: true};
+  if (q.loai_doi.length){
+    try { r = await plRun("PLTEST"); } catch(err){ box.className = "note bad"; box.textContent = "Không tải được bộ tạo file. Kiểm tra mạng rồi bấm lại."; return; }
+  }
   const errs = [...e1, ...(r.errors || [])];
-  if (!r.ok && !r.errors) errs.push("Tạo văn bản chưa được:\n" + (r.summary || ""));
+  if (!r.ok && !r.errors) errs.push("Tạo văn bản chưa được: " + (r.summary || ""));
   if (errs.length){ plErr(errs); return; }
   plChecked = q;
   const w = r.warnings || [];
@@ -888,7 +994,7 @@ $("pl_check").onclick = async () => {
   box.innerHTML = `<b>Phụ lục hợp lệ:</b> ${esc(r.tags.join(", "))} cho <b>${esc(r.ten)}</b>.
     <div style="margin-top:8px">Mã KH: <b>${esc(q.ma_kh)}</b> · Số HĐ gốc: ${esc(q.hd_no)}<br>Ngày phụ lục: ${esc(q.ngay)} · ${q.ky === "tay" ? "Ký tay" : "Ký online"}</div>
     ${r.rows.map(x => `<div style="margin-top:6px"><b>${esc(x.S.split(" - ")[0])}</b>: ${esc(x.I.replace(/^\S+\s+\S+\s*/, ""))}</div>`).join("")}
-    ${q.moi.AU && q.loai_doi.includes("PLC") ? `<pre class="prev" style="margin-top:8px">${esc(q.moi.AU)}</pre>` : ""}
+    ${q.moi.AU ? `<pre class="prev" style="margin-top:8px">${esc(q.moi.AU)}</pre>` : ""}
     ${w.length ? "<ul>" + w.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" : ""}`;
   $("pl_send").disabled = !API;
   if (!API) $("pl_msg").textContent = "Trang chưa nối với Google Sheet (thiếu link trong config.js).";
@@ -906,9 +1012,9 @@ $("pl_send").onclick = async () => {
     const q = plChecked, tags = r.tags.join("+");
     const ten = unacc(r.ten || code).replace(/[\\/:*?"<>|]+/g, "_");
     $("pl_msg").textContent = "Đang gửi phụ lục...";
-    const rec = { sale_ten: `${v("s_ten").toUpperCase()} - ${v("s_msnv")}`, sale_msnv: v("s_msnv"), sale_khu: v("s_khu"), loai: v("pl_loai"), ky: q.ky,
+    const rec = { sale_ten: `${v("s_ten").toUpperCase()} - ${v("s_msnv")}`, sale_msnv: v("s_msnv"), sale_khu: v("s_khu"), loai: PL.canhan ? "canhan" : "tochuc", ky: q.ky,
       ten_khach: `${tags} - ${r.ten}`, nguoi_dai_dien: q.hien_tai.U || "", sdt: q.moi.AI || q.hien_tai.AI || "", dia_chi_lay_hang: "",
-      mat_hang: "", san_luong: q.moi.AO || "", gia: q.loai_doi.includes("PLC") ? q.moi.AU : "", doi_thu: "", crm: q.ma_kh, bc_lay_hang: "" };
+      mat_hang: "", san_luong: "", gia: q.moi.AU || "", doi_thu: "", crm: q.ma_kh, bc_lay_hang: "" };
     const res = await apiPost({action: "submit", code, email: v("s_email"), rec, filename: `PHU LUC ${tags} - ${ten} - ${code}.zip`, zip: u8ToB64(zip)});
     if (!res.ok) throw new Error(res.error);
     lastCode = code; $("pl_msg").textContent = "";
