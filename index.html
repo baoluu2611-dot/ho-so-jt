@@ -256,6 +256,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <div id="pl_info" class="note" hidden></div>
     <div id="pl_cmp" class="note" hidden></div>
     <label class="row" id="w_xnhd" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_hd" style="width:auto"> Tôi đã đối chiếu hợp đồng gốc với file tạo mã: số HĐ, tên, số tài khoản, địa chỉ, giá đều khớp.</label>
+    <div id="pl_lamlai" class="note warn" hidden></div>
   </section>
 
   <div id="pl_main" style="display:grid;gap:16px">
@@ -895,7 +896,7 @@ function lichSuHtml(r){
 }
 $("pl_xlsx").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  const msg = $("pl_xlsxmsg"); PL = null; plOld = null; $("pl_info").hidden = true; veBang();
+  const msg = $("pl_xlsxmsg"); PL = null; plOld = null; $("pl_info").hidden = true; lamLai.clear(); plGui = null; $("pl_lamlai").hidden = true; veBang();
   try {
     if (!/\.xlsx$/i.test(f.name)) throw new Error("phải là file .xlsx (file tạo mã)");
     msg.textContent = "Đang đọc file tạo mã...";
@@ -1080,13 +1081,29 @@ async function plRun(code){
 /* chặn trùng số: hỏi Google Sheet các phụ lục đã gửi qua web cho mã KH này */
 let plGui = null;
 async function layDaGui(mk){ const r = await apiGet({action: "pldagui", ma_kh: mk}); if (!r.ok) throw new Error(r.error || "lỗi"); return {ma_kh: mk, ds: r.ds || []}; }
+/* phụ lục đã gửi qua web (đang chờ duyệt hoặc đã gửi file) mà file tạo mã tải lên chưa có */
+const lamLai = new Set();   // mã hồ sơ phụ lục sale báo làm sai, làm lại thay thế
+let plThay = null;          // chốt lúc Kiểm tra: {ds: [mã hồ sơ], ly: lý do}
+const xungDot = () => (!plGui || !PL) ? [] : plGui.ds.filter(x => x.code && x.tags.some(t => !(PL.da_co || []).includes(t)));
+function veLamLai(){
+  const box = $("pl_lamlai"), ds = xungDot(), ly = nho("pl_lydo") || "";
+  [...lamLai].forEach(c => { if (!ds.some(x => x.code === c)) lamLai.delete(c); });
+  if (!ds.length){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  box.innerHTML = "<b>Mã KH này đã có phụ lục gửi qua web nhưng file tạo mã bạn tải lên chưa có:</b>" +
+    ds.map(x => `<label class="row" style="color:var(--ink);font-size:14px;margin-top:6px"><input type="checkbox" data-lamlai="${esc(x.code)}" style="width:auto"${lamLai.has(x.code) ? " checked" : ""}> ${esc(x.tags.join("+"))} – hồ sơ ${esc(x.code)}, gửi ${esc(x.ngay)} (${x.xong ? "đã gửi file" : "đang chờ duyệt"}): <b>phụ lục này làm sai, làm lại</b></label>`).join("") +
+    `<label style="margin-top:8px"><b>Lý do làm lại (bắt buộc khi tick)</b><input id="pl_lydo" value="${esc(ly)}" placeholder="vd: ghi sai SĐT mới của khách"></label>` +
+    `<div class="hint" style="margin-top:6px">Không phải làm sai mà chỉ thiếu file: tải file tạo mã trong mail của lần phụ lục gần nhất, không tick. Làm lại phụ lục sai: dùng file tạo mã của lần TRƯỚC phụ lục sai. Hồ sơ làm lại luôn chờ trưởng nhóm duyệt, phụ lục sai sẽ bị huỷ.</div>`;
+}
+$("pl_lamlai").addEventListener("change", e => { const c = e.target.dataset && e.target.dataset.lamlai; if (c){ if (e.target.checked) lamLai.add(c); else lamLai.delete(c); plInvalidate(); } });
 function loiDaGui(){
   if (!plGui || !PL) return [];
-  const co = PL.da_co || [], e = [];
-  const cho = plGui.ds.filter(x => !x.xong && x.tags.some(t => !co.includes(t)));
-  if (cho.length) e.push("Mã KH này còn phụ lục " + cho.map(x => x.tags.join("+") + " (gửi " + x.ngay + ")").join(", ") + " đang chờ duyệt. Đợi trưởng nhóm duyệt xong, tải file tạo mã mới trong mail rồi làm tiếp (mục 3)");
-  const thieu = plGui.ds.filter(x => x.xong).flatMap(x => x.tags.filter(t => !co.includes(t)).map(t => t + " (gửi " + x.ngay + ")"));
-  if (thieu.length) e.push("File tạo mã chưa phải bản mới nhất: thiếu " + thieu.join(", ") + ". Tải file tạo mã trong mail của lần phụ lục gần nhất (mục 3)");
+  const co = PL.da_co || [], e = [], ds = xungDot().filter(x => !lamLai.has(x.code));
+  const cho = ds.filter(x => !x.xong);
+  if (cho.length) e.push("Mã KH này còn phụ lục " + cho.map(x => x.tags.join("+") + " (gửi " + x.ngay + ")").join(", ") + " đang chờ duyệt. Đợi trưởng nhóm duyệt xong, tải file tạo mã mới trong mail rồi làm tiếp. Nếu phụ lục đó làm sai: tick \"làm lại\" ở mục 3");
+  const thieu = ds.filter(x => x.xong).flatMap(x => x.tags.filter(t => !co.includes(t)).map(t => t + " (gửi " + x.ngay + ")"));
+  if (thieu.length) e.push("File tạo mã chưa phải bản mới nhất: thiếu " + thieu.join(", ") + ". Tải file tạo mã trong mail của lần phụ lục gần nhất. Nếu phụ lục đó làm sai: tick \"làm lại\" ở mục 3");
+  if (lamLai.size && !String(nho("pl_lydo") || "").trim()) e.push("Đã tick làm lại phụ lục: ghi lý do làm lại (mục 3)");
   return e;
 }
 $("pl_check").onclick = async () => {
@@ -1097,7 +1114,7 @@ $("pl_check").onclick = async () => {
   const q = plReq();
   let eGui = [];
   if (API && /^\d{3}[A-Z]{2}\d{3,}$/.test(q.ma_kh)){
-    try { plGui = await layDaGui(q.ma_kh); eGui = loiDaGui(); }
+    try { plGui = await layDaGui(q.ma_kh); veLamLai(); eGui = loiDaGui(); }
     catch(err){ eGui = ["Chưa kiểm tra được các phụ lục đã gửi cho mã KH này (lỗi mạng). Bấm Kiểm tra lại"]; }
   }
   const e1 = [...plLocal(q), ...eGui];
@@ -1109,6 +1126,7 @@ $("pl_check").onclick = async () => {
   if (!r.ok && !r.errors) errs.push("Tạo văn bản chưa được: " + (r.summary || ""));
   if (errs.length){ plErr(errs); return; }
   plChecked = q;
+  plThay = lamLai.size ? {ds: [...lamLai], ly: String(nho("pl_lydo") || "").trim()} : null;
   const w = r.warnings || [];
   box.className = "note ok";
   box.innerHTML = `<b>Phụ lục hợp lệ:</b> ${esc(r.tags.join(", "))} cho <b>${esc(r.ten)}</b>.
@@ -1133,9 +1151,10 @@ $("pl_send").onclick = async () => {
     const ten = unacc(r.ten || code).replace(/[\\/:*?"<>|]+/g, "_");
     $("pl_msg").textContent = "Đang gửi phụ lục...";
     const rec = { sale_ten: `${v("s_ten").toUpperCase()} - ${v("s_msnv")}`, sale_msnv: v("s_msnv"), sale_khu: v("s_khu"), loai: PL.canhan ? "canhan" : "tochuc", ky: q.ky,
-      ten_khach: `${tags} - ${r.ten}`, nguoi_dai_dien: q.hien_tai.U || "", sdt: q.moi.AI || q.hien_tai.AI || "", dia_chi_lay_hang: "",
+      ten_khach: `${tags} - ${r.ten}` + (plThay ? " (LÀM LẠI)" : ""), nguoi_dai_dien: q.hien_tai.U || "", sdt: q.moi.AI || q.hien_tai.AI || "", dia_chi_lay_hang: "",
       mat_hang: "", san_luong: "", gia: q.moi.AU || "", doi_thu: "", crm: q.ma_kh, bc_lay_hang: "" };
-    const res = await apiPost({action: "submit", code, email: v("s_email"), rec, filename: `PHU LUC ${tags} - ${ten} - ${code}.zip`, zip: u8ToB64(zip)});
+    const res = await apiPost({action: "submit", code, email: v("s_email"), rec, filename: `PHU LUC ${tags} - ${ten} - ${code}.zip`, zip: u8ToB64(zip),
+      thay: plThay ? plThay.ds : [], ly_do: plThay ? plThay.ly : ""});
     if (!res.ok) throw new Error(res.error);
     lastCode = code; $("pl_msg").textContent = "";
     showDone(code, res.phi, res.tu_duyet);
