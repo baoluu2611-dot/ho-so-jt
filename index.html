@@ -110,17 +110,22 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><input type="radio" name="ky" value="online" checked> Ký online</label>
       <label><input type="radio" name="ky" value="tay"> Ký tay</label>
     </div>
+    <label class="row" id="w_token" hidden style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_token" style="width:auto"> Khách có USB Token để ký số (công ty / hộ KD không có USB Token thì chọn Ký tay)</label>
+    <label id="w_lydotay" hidden><b>Lý do khách cá nhân ký tay (cá nhân mặc định ký online)</b><input id="k_lydotay" placeholder="vd: khách lớn tuổi không dùng được ký số"></label>
     <div class="grid">
       <label id="w_shop"><b>Tên shop</b><input id="k_shop" placeholder="Để trống = tên trên CCCD"></label>
       <label><b>SĐT khách</b><input id="k_sdt" inputmode="tel" placeholder="10 số"></label>
       <label><b>Gmail nhận đối soát</b><input id="k_email" type="email" placeholder="...@gmail.com"></label>
       <label><b>Mã CRM</b><input id="k_crm" inputmode="numeric"></label>
     </div>
+    <div class="hint">SĐT và Gmail lên hợp đồng phải là số / mail khách đang dùng.</div>
   </section>
 
   <section class="card">
     <h2><span class="n">3</span><span id="gt_title">Thông tin trên CCCD</span></h2>
     <div class="hint" id="gt_hint"></div>
+    <div class="note" id="w_mst" hidden>Trước khi làm: tra mã số thuế còn hoạt động (ngưng hoạt động là không làm được). Hộ KD: trang thuế ra địa chỉ khác GPKD thì hỏi lại khách lên hợp đồng theo địa chỉ nào. Công ty: cổng thông tin doanh nghiệp quốc gia ra địa chỉ khác GPKD thì xin khách GPKD mới nhất, không có thì phải có tin nhắn khách xác nhận giấy đang gửi là mới nhất.
+      <div class="row" style="margin-top:6px"><a class="btn sm" href="https://tracuunnt.gdt.gov.vn/tcnnt/mstdn.jsp" target="_blank" rel="noopener">Tra MST (trang thuế)</a><a class="btn sm" href="https://dangkykinhdoanh.gov.vn/" target="_blank" rel="noopener">Cổng thông tin doanh nghiệp quốc gia</a></div></div>
     <div style="display:grid;gap:6px">
       <label for="f_giayto"><b id="l_gtimg">Ảnh CCCD 2 mặt</b></label>
       <div class="row"><input type="file" id="f_giayto" accept="image/*,application/pdf" multiple style="max-width:320px"><button type="button" class="btn sm" data-clear="giayto">Xóa ảnh</button><button type="button" class="btn primary sm" id="btn-ocr">Đọc tự động</button></div>
@@ -134,7 +139,8 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b id="l_so">Số CCCD (12 số)</b><input id="g_so"></label>
       <label><b id="l_ngaycap">Ngày cấp (mặt sau)</b><input id="g_ngaycap" placeholder="dd/mm/yyyy"></label>
       <label id="w_ngaycap2" hidden><b>Ngày thay đổi gần nhất (nếu GPKD có 2 ngày)</b><input id="g_ngaycap2" placeholder="dd/mm/yyyy — không có thì để trống"></label>
-      <label id="w_noicap" hidden><b>Nơi cấp (y chang GPKD)</b><input id="g_noicap" placeholder="SỞ TÀI CHÍNH THÀNH PHỐ HỒ CHÍ MINH"></label>
+      <label id="w_noicap"><b id="l_noicap">Nơi cấp (y chang GPKD)</b><input id="g_noicap" placeholder="SỞ TÀI CHÍNH THÀNH PHỐ HỒ CHÍ MINH"></label>
+      <label id="w_hethan"><b>CCCD có giá trị đến</b><input id="g_hethan" placeholder="dd/mm/yyyy hoặc Không thời hạn"></label>
       <label><b>Ngày sinh</b><input id="g_ngaysinh" placeholder="dd/mm/yyyy"></label>
       <label><b>Giới tính</b><select id="g_gioitinh"><option>Nam</option><option>Nữ</option></select></label>
     </div>
@@ -348,7 +354,7 @@ const DOITHU = ["GHTK","GHN","Viettel Post","BEST","VN POST","247 Express","Nh�
 const NGUON = ["Hội Nhóm MXH","Quét Đường","Đi theo bên cùng ngành","From CS","KH cũ giới thiệu","Người Quen Giới Thiệu","KH Đến Bưu Cục ","Livestream","Shipper Ghi Nhận","KH Là Người Quen","Mua Data","Tuyển NV cùng ngành","Tìm Kiếm Online (Web, Google)"];
 const BANKS = [["970436","Vietcombank"],["970415","VietinBank"],["970418","BIDV"],["970405","Agribank"],["970407","Techcombank"],["970422","MB Bank"],["970416","ACB"],["970432","VPBank"],["970423","TPBank"],["970403","Sacombank"],["970441","VIB"],["970437","HDBank"],["970426","MSB"],["970443","SHB"],["970448","OCB"],["970440","SeABank"],["970431","Eximbank"],["970449","LPBank"],["970428","Nam A Bank"],["546034","Cake by VPBank"],["970454","BVBank"],["970452","KienlongBank"],["970412","PVcomBank"],["970425","ABBank"],["970409","Bac A Bank"],["970427","VietA Bank"],["970419","NCB"],["970400","Saigonbank"],["970433","Vietbank"],["970438","BaoViet Bank"]];
 const IMG_ROLES = [
-  ["san_pham","Ảnh sản phẩm / kho", false],
+  ["san_pham","Ảnh sản phẩm / kho (bắt buộc khi giá dưới 19.000đ: chụp thấy rõ sản phẩm, kèm định vị)", false],
   ["gia_doi_thu","Ảnh giá đối thủ hoặc sản lượng đối thủ (bắt buộc khi giá từ 18.000đ trở xuống, hoặc khách cũ ngừng gửi từ 2 tháng)", false],
   ["duyet_gia","Tin nhắn xin giá với TPKD (bắt buộc khi phải xin giá)", false],
   ["truong_nhom","Hình PIC hoặc trưởng nhóm tại shop (bắt buộc khi giá từ 17.000 trở xuống)", false],
@@ -376,9 +382,9 @@ if (!$("s_bc").value) $("s_bc").value = "028Y91";
 const loai = () => document.querySelector('input[name="loai"]:checked').value;
 function applyLoai(){
   const l = loai(), ca = l === "canhan";
-  $("w_shop").hidden = !ca; $("w_tochuc").hidden = ca; $("w_chucvu").hidden = ca; $("w_noicap").hidden = ca; $("w_ngaycap2").hidden = ca; veDcMoi();
+  $("w_shop").hidden = !ca; $("w_tochuc").hidden = ca; $("w_chucvu").hidden = ca; $("l_noicap").textContent = ca ? "Nơi cấp (mặt sau CCCD)" : "Nơi cấp (y chang GPKD)"; $("g_noicap").placeholder = ca ? "Cục Cảnh sát quản lý hành chính về trật tự xã hội / Bộ Công an" : "SỞ TÀI CHÍNH THÀNH PHỐ HỒ CHÍ MINH"; $("w_hethan").hidden = !ca; $("w_mst").hidden = ca; veKy(); $("w_ngaycap2").hidden = ca; veDcMoi();
   $("gt_title").textContent = ca ? "Thông tin trên CCCD" : "Thông tin trên GPKD";
-  $("gt_hint").textContent = ca ? "Tải ảnh CCCD 2 mặt rồi bấm Đọc tự động. Trang tự điền các ô bên dưới, bạn soát lại cho đúng y chang căn cước." : "Tải ảnh hoặc PDF GPKD (thêm ảnh CCCD người đại diện để lấy ngày sinh, giới tính) rồi bấm Đọc tự động. Soát lại y chang giấy phép, kể cả chữ in hoa.";
+  $("gt_hint").textContent = ca ? "Tải ảnh CCCD 2 mặt (còn hạn, đủ 4 góc, không mờ, không nhoè) rồi bấm Đọc tự động. Trang tự điền các ô bên dưới, bạn soát lại cho đúng y chang căn cước. Địa chỉ, ngày cấp, nơi cấp trên hợp đồng lấy theo CCCD." : "Tải ảnh hoặc PDF GPKD mới nhất (đủ góc, không mờ, không nhoè; thêm ảnh CCCD người đại diện để lấy ngày sinh, giới tính) rồi bấm Đọc tự động. Soát lại y chang giấy phép, kể cả chữ in hoa.";
   $("l_gtimg").textContent = ca ? "Ảnh CCCD 2 mặt" : "Ảnh / PDF GPKD (+ CCCD người đại diện nếu có)";
   $("l_nguoi").textContent = ca ? "Họ tên (có dấu)" : "Người đại diện (có dấu)";
   $("l_so").textContent = ca ? "Số CCCD (12 số)" : (l==="hkd" ? "Mã số hộ kinh doanh" : "Mã số doanh nghiệp");
@@ -388,6 +394,9 @@ function applyLoai(){
   invalidate();
 }
 document.querySelectorAll('input[name="loai"]').forEach(r => r.onchange = applyLoai);
+/* ký: công ty / hộ KD ký online phải có USB Token; cá nhân mặc định ký online, ký tay ghi lý do */
+function veKy(){ const ca = loai() === "canhan", tay = document.querySelector('input[name="ky"]:checked').value === "tay"; $("w_token").hidden = ca || tay; $("w_lydotay").hidden = !(ca && tay); }
+document.querySelectorAll('input[name="ky"]').forEach(r => r.addEventListener("change", () => { veKy(); invalidate(); }));
 $("p_bac2").onchange = () => { $("w_bac2").hidden = !$("p_bac2").checked; invalidate(); };
 
 
@@ -452,7 +461,7 @@ function readForm(){
     bc_lay_hang: v("l_bc").toUpperCase(), crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
     ten_shop: l === "canhan" ? v("k_shop") : "", sdt: v("k_sdt"), email: v("k_email"),
     giayto: l === "canhan"
-      ? {ho_ten:v("g_nguoi"), so:v("g_so"), ngay_cap:v("g_ngaycap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")}
+      ? {ho_ten:v("g_nguoi"), so:v("g_so"), ngay_cap:v("g_ngaycap"), noi_cap:v("g_noicap"), het_han:v("g_hethan"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")}
       : {ten_to_chuc:v("g_tochuc"), nguoi_dai_dien:v("g_nguoi"), chuc_vu:v("g_chucvu"), so:v("g_so"), ngay_cap:v("g_ngaycap"), ngay_cap2:v("g_ngaycap2"), noi_cap:v("g_noicap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")},
     lay_hang: {so_nha:noCity(v("l_sonha")), duong:noCity(v("l_duong")), phuong:noCity(v("l_phuong")), quan:noCity(v("l_quan"))},
     bank: {chu_tk:v("b_chu"), so_tk:v("b_so"), ngan_hang:v("b_nh")},
@@ -467,7 +476,7 @@ function xinGia(o){
   const r = [], lo = Math.min(...[o.hcm, o.tinh].filter(Boolean));
   if (o.moc > 2) r.push("mốc kg đầu trên 2kg");
   if (o.nhieuMoc) r.push("nhiều mốc kg");
-  if (isFinite(lo) && lo < 19000) r.push(lo <= 18000 ? "giá từ 18.000đ trở xuống" : "giá dưới 19.000đ");
+  if (isFinite(lo) && lo < 19000) r.push(lo < 13000 ? "giá đặc biệt dưới 13.000đ" : lo <= 18000 ? "giá từ 18.000đ trở xuống" : "giá dưới 19.000đ");
   if (o.kg !== null && o.kg < 0.5) r.push("phí bảo hiểm dưới 0,5%");
   if (o.cu && o.sl !== null && o.sl < 50) r.push("khách cũ đi ít (dưới 50 đơn/ngày)");
   if (o.cu && o.ngung >= 2) r.push(`khách cũ đã ngừng gửi ${o.ngung} tháng`);
@@ -486,7 +495,8 @@ function canAnh(){
   const lo = giaThap(), cu = $("p_khach").value === "cu";
   return {duyet_gia: lyDoXinGia().length > 0,
           gia_doi_thu: (isFinite(lo) && lo < 19000) || (cu && (soTP(v("p_cu_ngung")) || 0) >= 2),
-          truong_nhom: isFinite(lo) && lo <= 17000};
+          truong_nhom: isFinite(lo) && lo <= 17000,
+          san_pham: isFinite(lo) && lo < 19000};
 }
 function veXinGia(){
   const cu = $("p_khach").value === "cu"; $("w_khcu").hidden = !cu;
@@ -497,7 +507,7 @@ function veXinGia(){
     st.hidden = !on;
   }
   if (!digits(v("p_hcm")) && !digits(v("p_tinh"))){ n.hidden = true; return; }
-  const can = [need.duyet_gia && "tin nhắn xin giá với TPKD", need.gia_doi_thu && "ảnh giá/sản lượng đối thủ", need.truong_nhom && "hình PIC hoặc trưởng nhóm tại shop"].filter(Boolean);
+  const can = [need.duyet_gia && "tin nhắn xin giá với TPKD", need.gia_doi_thu && "ảnh giá/sản lượng đối thủ", need.truong_nhom && "hình PIC hoặc trưởng nhóm tại shop", need.san_pham && "ảnh sản phẩm kèm định vị"].filter(Boolean);
   n.hidden = false; n.className = "note " + (can.length ? "warn" : "ok");
   n.textContent = (r.length ? "Phải xin giá TPKD vì " + r.join("; ") + ". " : "Không cần xin giá. ") + (can.length ? "Mục 8 bắt buộc (dấu *): " + can.join(", ") + "." : "Không cần ảnh xin giá, ảnh đối thủ.");
 }
@@ -509,10 +519,20 @@ function localChecks(f){
     ["g_nguoi", f.loai==="canhan" ? "Họ tên trên CCCD" : "Người đại diện"],["g_so","Số giấy tờ"],["g_ngaycap","Ngày cấp"],["g_diachi","Địa chỉ trên giấy tờ"],
     ["l_sonha","Số nhà lấy hàng"],["l_duong","Đường lấy hàng"],["l_phuong","Phường cũ"],["l_quan","Quận cũ"],["l_bc","Bưu cục lấy hàng"],["b_so","Số tài khoản"],["b_nh","Ngân hàng"],["p_hcm","Giá HCM → HCM"],["p_tinh","Giá HCM → tỉnh"]];
   if (f.loai !== "canhan") need.push(["g_tochuc","Tên hộ KD / công ty"],["g_noicap","Nơi cấp GPKD"],["g_chucvu","Chức danh người đại diện"]);
+  else need.push(["g_noicap","Nơi cấp CCCD (mặt sau thẻ)"],["g_hethan","Ngày hết hạn CCCD (Có giá trị đến)"]);
   for (const [id,n] of need) if (!v(id)) e.push("Thiếu " + n);
   for (const d of ["g_ngaycap","g_ngaycap2","g_ngaysinh"]) if (v(d) && !/^\d{2}\/\d{2}\/\d{4}$/.test(v(d))) e.push("Ngày phải ghi dạng dd/mm/yyyy: " + v(d));
   if (!images.giayto.length) e.push(f.loai==="canhan" ? "Chưa có ảnh CCCD 2 mặt" : "Chưa có ảnh/PDF GPKD");
   if (!images.tin_nhan.length) e.push("Chưa có ảnh tin nhắn chốt với khách");
+  if (f.loai === "canhan" && v("g_hethan")){   /* CCCD phải còn hạn */
+    const m = v("g_hethan").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m){ if (`${m[3]}-${m[2]}-${m[1]}` < todayISO()) e.push("CCCD đã hết hạn (" + v("g_hethan") + "): không làm hợp đồng được, xin khách CCCD còn hạn"); }
+    else if (!/không thời hạn/i.test(v("g_hethan"))) e.push("Ngày hết hạn CCCD ghi dạng dd/mm/yyyy hoặc \"Không thời hạn\"");
+  }
+  if (f.loai !== "canhan" && f.ky === "online" && !$("xn_token").checked) e.push("Công ty / hộ KD ký online phải có USB Token: tick xác nhận, không có thì chọn Ký tay (mục 2)");
+  if (f.loai === "canhan" && f.ky === "tay" && !v("k_lydotay")) e.push("Khách cá nhân mặc định ký online: chọn ký tay thì ghi lý do (mục 2)");
+  if (digits(v("p_hcm")) && digits(v("p_tinh")) && digits(v("p_hcm")) < 22000 && digits(v("p_tinh")) < 22000 && digits(v("h_sl")) < 1500)
+    e.push("Giá cả 2 tuyến dưới 22.000đ thì sản lượng cam kết phải từ 1.500 đơn/tháng trở lên: nhập lại sản lượng cam kết của khách (mục 6)");
   if (v("l_bc") && !/^\d{3}[A-Z][A-Z0-9]{2}$/i.test(v("l_bc"))) e.push("Bưu cục lấy hàng chỉ ghi mã bưu cục, vd 028W61 (đang ghi: " + v("l_bc") + ")");
   if (!$("xn_gt").checked) e.push("Chưa tick xác nhận đã đối chiếu thông tin với CCCD / GPKD (mục 3)");
   if (f.loai !== "canhan" && diaChiCu(v("g_diachi"))){
@@ -529,6 +549,7 @@ function localChecks(f){
   const anh = canAnh(), xg = lyDoXinGia();
   if (anh.duyet_gia && !images.duyet_gia.length) e.push("Phải xin giá (" + xg.join("; ") + "): cần tin nhắn xin giá với TPKD (mục 8)");
   if (anh.gia_doi_thu && !images.gia_doi_thu.length) e.push("Giá từ 18.000đ trở xuống hoặc khách cũ ngừng gửi: cần ảnh giá/sản lượng đối thủ (mục 8)");
+  if (anh.san_pham && !images.san_pham.length) e.push("Giá dưới 19.000đ: cần ảnh sản phẩm thấy rõ, kèm định vị (mục 8)");
   if (anh.truong_nhom && !images.truong_nhom.length) e.push("Giá từ 17.000 trở xuống: cần hình PIC hoặc trưởng nhóm tại shop (mục 8)");
   return e;
 }
@@ -564,6 +585,8 @@ function engine(){
     py.runPython("import re as _re, os as _os, io as _io, copy as _cp, zipfile as _zf, unicodedata as _ud, build_from_excel as _bfe, fill_contract as _fc\nif not getattr(_bfe, '_nh_1lan', False):\n    def _bo_nh(s):\n        \"\"\"Mẫu đã có sẵn chữ \"Ngân hàng\" -> bỏ chữ \"Ngân hàng\"/\"NH\" sale gõ ở đầu (\"Ngân Hàng TMCP Tiên Phong\" -> \"TMCP Tiên Phong\"); chi nhánh TP.HCM ghi thống nhất \"Chi nhánh Hồ Chí Minh\".\"\"\"\n        if not isinstance(s, str) or not s.strip():\n            return s\n        s = _ud.normalize('NFC', s)\n        t = _re.sub(r'^\\s*(?:ng[aâ]n\\s*h[aà]ng|nh)(?=[\\s.:,\\-]|$)[\\s.:,\\-]*', '', s, flags=_re.I)\n        t = t if t.strip() else s\n        # Chi nhánh ở TP.HCM: \"CN HCM\", \"hcm\", \"chi nhánh hồ chí minh\", \"TP.HCM\"... -> \" - Chi nhánh Hồ Chí Minh\" như mẫu\n        m = _re.search(r'[\\s,\\-–(]*((?:chi\\s*nh[aá]nh|cn)\\.?\\s*)?(?:(?:tp|th[aà]nh\\s*ph[oố])\\.?\\s*)?(?:h[oồ]\\s*ch[ií]\\s*minh|hcm)\\s*\\.?\\s*\\)?\\s*$', t, flags=_re.I)\n        if m:\n            ngh = t[:m.start()].strip(' -–,(')\n            co_cn = _re.search(r'chi\\s*nh[aá]nh|\\bcn\\b', ngh, flags=_re.I)\n            if ngh and (m.group(1) or not co_cn):\n                t = ngh + ' - Chi nhánh Hồ Chí Minh'\n        return t\n    def _po(d, canhan, partial=False, _p0=_bfe.party_ops):\n        ops = _p0(d, canhan, partial)\n        for o in ops:\n            a = o.get('anchor')\n            if o.get('op') == 'slots' and isinstance(a, list) and any('[Tên Ngân hàng]' in x for x in a):\n                o['values'] = [_bo_nh(x) for x in o['values']]\n        return ops\n    _bfe.party_ops = _po\n    _bfe._bo_nh = _bo_nh\n    _bfe._nh_1lan = True\nif not hasattr(_fc, 'dam_dai_dien'):\n    def dam_dai_dien(path):\n        \"\"\"Hợp đồng tổ chức (HKD, công ty): tô đậm TÊN người đại diện bên khách, giống \"CHEN KECHAO\" bên J&T.\n        Chỉ thêm định dạng đậm, không đổi chữ. Tự kiểm tra: chữ giữ nguyên y hệt, lệch thì không ghi.\"\"\"\n        from lxml import etree\n        W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'\n        tx = lambda e: ''.join(t.text or '' for t in e.iter(W + 't'))\n        zin = _zf.ZipFile(path)\n        root = etree.fromstring(zin.read('word/document.xml'))\n        chu_truoc = [tx(p) for p in root.iter(W + 'p')]\n        dong = []\n        for tr in root.iter(W + 'tr'):\n            tcs = tr.findall(W + 'tc')\n            if len(tcs) >= 3 and tx(tcs[0]).strip() == 'Đại diện bởi' and ' - Chức vụ:' in tx(tcs[-1]):\n                dong.append(tcs[-1])\n        if len(dong) != 1:\n            return 'giữ nguyên (không thấy đúng 1 dòng \"Đại diện bởi\" của khách)'\n        chay = []\n        for r in dong[0].iter(W + 'r'):\n            t = ''.join(x.text or '' for x in r.iter(W + 't'))\n            if not t:\n                continue\n            i = t.find(' - Chức vụ:')\n            if i == 0:\n                break\n            if i > 0:\n                return 'giữ nguyên (tên và chức vụ dính chung 1 đoạn)'\n            chay.append(r)\n        ten = ''.join(''.join(x.text or '' for x in r.iter(W + 't')) for r in chay).strip()\n        if not ten:\n            return 'giữ nguyên (chưa có tên người đại diện)'\n        for r in chay:\n            rpr = r.find(W + 'rPr')\n            if rpr is None:\n                rpr = etree.Element(W + 'rPr'); r.insert(0, rpr)\n            if rpr.find(W + 'b') is None:\n                pos = 0\n                for i, k in enumerate(rpr):\n                    if etree.QName(k).localname in ('rStyle', 'rFonts'):\n                        pos = i + 1\n                rpr.insert(pos, etree.Element(W + 'b'))\n        if [tx(p) for p in root.iter(W + 'p')] != chu_truoc:\n            raise ValueError('dam_dai_dien: chữ bị đổi — không ghi')\n        new = etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)\n        buf = _io.BytesIO()\n        with _zf.ZipFile(buf, 'w') as zout:\n            for info in zin.infolist():\n                zout.writestr(_cp.copy(info), new if info.filename == 'word/document.xml' else zin.read(info), compress_type=info.compress_type)\n        zin.close()\n        open(path, 'wb').write(buf.getvalue())\n        return 'tô đậm \"' + ten + '\"'\n    _fc.dam_dai_dien = dam_dai_dien\n    def _fc_main6(src, ops_path, dst, report_path, _m0=_fc.main):\n        try:\n            _m0(src, ops_path, dst, report_path); code = 0\n        except SystemExit as e:\n            code = e.code\n        if code in (0, None) and _os.path.exists(dst) and _os.path.basename(src).startswith('L2_ HD') and 'Tổ chức' in src:\n            try: msg = _fc.dam_dai_dien(dst)\n            except Exception as ex: msg = 'giữ nguyên (' + str(ex)[:80] + ')'\n            try: open(report_path, 'a', encoding='utf8').write('\\n\\nTÊN NGƯỜI ĐẠI DIỆN: ' + msg)\n            except Exception: pass\n        raise SystemExit(code)\n    _fc.main = _fc_main6\n");
     /* GPKD 2 ngày cấp: file tạo mã ghi cả 2 ngày, hợp đồng/phụ lục để trống nơi cấp + ngày cấp. Thông tin IN lên hợp đồng/phụ lục (địa chỉ mới, theo HĐ đã ký) web đặt qua _hien_thi, không ghi vào file tạo mã */
     py.runPython("import re as _re, build_from_excel as _bfe, form_map as _fm\nif not getattr(_bfe, '_hien_thi_ok', False):\n    _bfe._hien_thi = {}   # web đặt trước mỗi lần tạo file: thông tin IN LÊN hợp đồng / phụ lục (không ghi vào file tạo mã)\n    _COT_IN = ('AH', 'AI', 'AN', 'AJ', 'AK', 'AL', 'W', 'X', 'Y', 'U', 'V')\n    def _po7(d, canhan, partial=False, _p0=_bfe.party_ops):\n        d2 = dict(d)\n        for c, v in (_bfe._hien_thi or {}).items():\n            if c in _COT_IN and str(v or '').strip():\n                d2[c] = str(v).strip()\n        hai_ngay = len(_re.findall(r'\\d{1,2}/\\d{1,2}/\\d{4}', str(d2.get('X') or ''))) >= 2\n        ops = _p0(d2, canhan, partial)\n        if hai_ngay and not canhan:   # GPKD có 2 ngày cấp: hợp đồng / phụ lục để trống nơi cấp + ngày cấp\n            for o in ops:\n                if o.get('op') == 'row' and o.get('label') == 'Mã số thuế':\n                    o['values'] = [o['values'][0], '', '']\n        return ops\n    _bfe.party_ops = _po7\n    _bfe._hien_thi_ok = True\nif not getattr(_fm, '_hai_ngay', False):\n    def _fb7(f, today, _b0=_fm.build):\n        cols, err = _b0(f, today)\n        g = f.get('giayto') or {}\n        n2 = str(g.get('ngay_cap2') or '').strip()\n        if n2 and f.get('loai') != 'canhan':   # file tạo mã ghi cả 2 ngày, mỗi ngày 1 dòng\n            cols['X'] = str(g.get('ngay_cap') or '').strip() + '\\n' + n2\n        return cols, err\n    _fm.build = _fb7\n    _fm._hai_ngay = True\nimport add_row as _ar\nif not getattr(_ar, '_hai_ngay', False):\n    def _td(v, _t0=_ar.to_date):\n        \"\"\"Cột ngày cấp có 2 ngày (GPKD đăng ký lần đầu + thay đổi): ghi nguyên chữ, mỗi ngày 1 dòng.\"\"\"\n        if len(_re.findall(r'\\d{1,2}/\\d{1,2}/\\d{4}', str(v or ''))) >= 2:\n            return str(v).strip()\n        return _t0(v)\n    _ar.to_date = _td\n    _ar._hai_ngay = True\n");
+    /* nơi cấp CCCD theo thẻ (viết hoa chữ đầu); hộ KD in địa chỉ mới thì bỏ ngày cấp + nơi cấp; phí khai giá từ 0.5% không ghi "cần duyệt TPKD" */
+    py.runPython("import re as _re, build_from_excel as _bfe, form_map as _fm\nif not getattr(_bfe, '_p8', False):\n    _VOWEL = _re.compile('[aeiouyàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹ]', _re.I)\n    def _hoa_chu(s):\n        \"\"\"Nơi cấp CCCD viết hoa chữ đầu mỗi chữ (cách ghi Team HĐ); chữ viết tắt không có nguyên âm (ĐKQL, DLQG) giữ nguyên.\"\"\"\n        return ' '.join(w if not _VOWEL.search(w) else w[:1].upper() + w[1:].lower() for w in str(s).split())\n    def _fb8(f, today, _b0=_fm.build):\n        cols, err = _b0(f, today)\n        nc = str((f.get('giayto') or {}).get('noi_cap') or '').strip()\n        if f.get('loai') == 'canhan' and nc:   # nơi cấp CCCD theo đúng thẻ (thẻ căn cước mới: Bộ Công an)\n            cols['Y'] = _hoa_chu(nc)\n        return cols, err\n    _fm.build = _fb8\n    def _po8(d, canhan, partial=False, _p0=_bfe.party_ops):\n        ops = _p0(d, canhan, partial)\n        if not canhan and (_bfe._hien_thi or {}).get('BO_NGAY'):   # HKD in địa chỉ mới (theo trang thuế): bỏ ngày cấp + nơi cấp\n            for o in ops:\n                if o.get('op') == 'row' and o.get('label') == 'Mã số thuế':\n                    o['values'] = [o['values'][0], '', '']\n        return ops\n    _bfe.party_ops = _po8\n    def _ck8(d, kind, _c0=_bfe.check):\n        err, warn = _c0(d, kind)\n        try: w = float(d.get('AW'))\n        except (TypeError, ValueError): w = None\n        if w is not None and w >= 0.005:   # chỉ phí bảo hiểm dưới 0.5% mới phải xin TPKD\n            warn = [x.replace(' Cần có duyệt giá của TPKD đính kèm.', '') for x in warn]\n        return err, warn\n    _bfe.check = _ck8\n    _bfe._p8 = True\n");
     st("sẵn sàng");
     return py;
   })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
@@ -631,7 +654,7 @@ async function smallJpeg(blob){ const img = await toImage(blob); const k = Math.
 
 /* ---------- đọc tự động CCCD / GPKD bằng Gemini ---------- */
 function ocrState(){ $("btn-ocr").disabled = false; }
-const OCR_FIELDS = {canhan:{ho_ten:"g_nguoi", so:"g_so", ngay_cap:"g_ngaycap", ngay_sinh:"g_ngaysinh", gioi_tinh:"g_gioitinh", dia_chi:"g_diachi"},
+const OCR_FIELDS = {canhan:{ho_ten:"g_nguoi", so:"g_so", ngay_cap:"g_ngaycap", noi_cap:"g_noicap", ngay_het_han:"g_hethan", ngay_sinh:"g_ngaysinh", gioi_tinh:"g_gioitinh", dia_chi:"g_diachi"},
   to_chuc:{ten_to_chuc:"g_tochuc", nguoi_dai_dien:"g_nguoi", chuc_vu:"g_chucvu", so:"g_so", ngay_cap:"g_ngaycap", noi_cap:"g_noicap", ngay_sinh:"g_ngaysinh", gioi_tinh:"g_gioitinh", dia_chi:"g_diachi",
   so_nha:"l_sonha", duong:"l_duong", phuong:"l_phuong", quan:"l_quan"}};
 $("btn-ocr").onclick = async () => {
@@ -682,7 +705,7 @@ $("btn-dc").onclick = async () => {
 };
 document.querySelectorAll("#view-form input, #view-form select").forEach(el => el.addEventListener("input", () => { el.style.borderColor = ""; }));
 /* sửa thông tin sau khi đã tick xác nhận thì phải tick lại */
-["g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_ngaysinh","g_gioitinh","g_diachi"].forEach(id => $(id).addEventListener("input", () => { $("xn_gt").checked = false; }));
+["g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_ngaysinh","g_gioitinh","g_diachi","g_hethan"].forEach(id => $(id).addEventListener("input", () => { $("xn_gt").checked = false; }));
 ["b_chu","b_so","b_nh"].forEach(id => $(id).addEventListener("input", () => { $("xn_tk").checked = false; }));
 $("l_bc").addEventListener("change", () => { $("l_bc").value = $("l_bc").value.trim().toUpperCase(); });
 
@@ -698,7 +721,7 @@ $("btn-send").onclick = async () => {
     const paths = {};
     for (const [k, arr] of Object.entries(images)){ paths[k] = []; for (let i = 0; i < arr.length; i++){ const p = `/in/${code}_${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); paths[k].push(p); } }
     paths.duyet_gia = (paths.duyet_gia || []).concat(paths.truong_nhom || []); delete paths.truong_nhom;
-    await datHienThi(f.loai !== "canhan" && diaChiCu(v("g_diachi")) && v("g_dcmoi") ? {AH: v("g_dcmoi")} : {});   // hợp đồng in địa chỉ mới, file tạo mã giữ y chang GPKD
+    await datHienThi(f.loai !== "canhan" && diaChiCu(v("g_diachi")) && v("g_dcmoi") ? {AH: v("g_dcmoi"), ...(f.loai === "hkd" ? {BO_NGAY: 1} : {})} : {});   // hợp đồng in địa chỉ mới, file tạo mã giữ y chang GPKD
     let r; try { r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO()); } finally { await datHienThi({}); }
     if (!r.ok){ $("formmsg").textContent = ""; const box = $("checkout"); box.className = "note bad"; box.style.whiteSpace = "pre-wrap"; box.textContent = "Không tạo được file:\n" + (r.errors || []).join("\n") + (r.summary || ""); btn.disabled = false; return; }
     const m = py.pyimport("web_entry"); m.dong_goi(JSON.stringify(r.files), "/out/" + code + ".zip"); m.destroy();
@@ -714,13 +737,14 @@ $("btn-send").onclick = async () => {
     showDone(code, res.phi, res.tu_duyet);
   } catch(err){ $("formmsg").textContent = "Gửi chưa được: " + (err && err.message || err); btn.disabled = false; }
 };
+const NHAC_OA = `<div class="note warn">Việc còn lại sale tự làm: tạo CRM buổi hẹn và gắn link OA; nhập OA tay đúng mặt hàng, sản lượng cam kết như file tạo mã.</div>`;
 function showDone(code, phi, tu){
   $("done").hidden = false; $("view-form").hidden = true; $("view-pl").hidden = true; $("view-sale").hidden = true; document.querySelector("header nav").hidden = true;
   if (tu){   // mã NV được tự duyệt: Apps Script đã gửi file luôn
-    $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. Đã gửi file về <b>${esc(v("s_email"))}</b> (mã NV được tự duyệt). Mở mail kiểm tra lại thông tin trước khi nộp. Ghi lại mã này để tra cứu.</div>`;
+    $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. Đã gửi file về <b>${esc(v("s_email"))}</b> (mã NV được tự duyệt). Mở mail kiểm tra lại thông tin trước khi nộp. Ghi lại mã này để tra cứu.</div>` + NHAC_OA;
     window.scrollTo(0, 0); return;
   }
-  $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. File sẽ gửi về <b>${esc(v("s_email"))}</b> sau khi trưởng nhóm duyệt. Ghi lại mã này để tra cứu.</div>` +
+  $("done-body").innerHTML = `<div class="note ok">Mã hồ sơ: <b>${esc(code)}</b>. File sẽ gửi về <b>${esc(v("s_email"))}</b> sau khi trưởng nhóm duyệt. Ghi lại mã này để tra cứu.</div>` + NHAC_OA +
     (phi ? `<div class="hint">Quét mã bằng app ngân hàng. Giữ đúng nội dung chuyển khoản <b>${esc(code)}</b> để được duyệt nhanh.</div><div id="pay-qr"></div>` : `<div class="note">Hồ sơ được miễn phí. Chờ duyệt là nhận file.</div>`);
   if (phi) drawQR($("pay-qr"), CFG, phi, code);
   window.scrollTo(0, 0);
@@ -1111,6 +1135,9 @@ function plHienThi(q){
     if (x && !(c in q.moi) && !doi.has(c) && x !== String(q.hien_tai[c] || "").trim()) o[c] = x;
   }
   if (!PL.canhan && !("AH" in q.moi) && diaChiCu(o.AH || q.hien_tai.AH) && v("pl_dcmoi")) o.AH = v("pl_dcmoi");
+  /* hộ KD in địa chỉ khác GPKD (địa chỉ mới theo trang thuế): bỏ ngày cấp + nơi cấp như hợp đồng */
+  const hkd = /^h[ộo]\s*kinh\s*doanh/i.test(String(q.hien_tai.T || "").trim()) || /chủ hộ/i.test(String(q.hien_tai.V || ""));
+  if (!PL.canhan && hkd && o.AH) o.BO_NGAY = 1;
   return o;
 }
 function veDcMoiPL(){
@@ -1187,7 +1214,7 @@ $("pl_check").onclick = async () => {
   box.innerHTML = `<b>Phụ lục hợp lệ:</b> ${esc(r.tags.join(", "))} cho <b>${esc(r.ten)}</b>.
     <div style="margin-top:8px">Mã KH: <b>${esc(q.ma_kh)}</b> · Số HĐ gốc: ${esc(q.hd_no)}<br>Ngày phụ lục: ${esc(q.ngay)} · ${q.ky === "tay" ? "Ký tay" : "Ký online"}</div>
     ${r.rows.map(x => `<div style="margin-top:6px"><b>${esc(x.S.split(" - ")[0])}</b>: ${esc(x.I.replace(/^\S+\s+\S+\s*/, ""))}</div>`).join("")}
-    ${(() => { const o = plHienThi(q), k = Object.keys(o); return k.length ? `<div style="margin-top:6px">In lên phụ lục theo hợp đồng đã ký: ${k.map(c => `${esc(COT_IN[c])} <b>${esc(o[c])}</b>`).join("; ")} (file tạo mã không đổi)</div>` : ""; })()}
+    ${(() => { const o = plHienThi(q), k = Object.keys(o).filter(c => c in COT_IN); return k.length ? `<div style="margin-top:6px">In lên phụ lục theo hợp đồng đã ký: ${k.map(c => `${esc(COT_IN[c])} <b>${esc(o[c])}</b>`).join("; ")} (file tạo mã không đổi)</div>` : ""; })()}
     ${q.moi.AU ? `<pre class="prev" style="margin-top:8px">${esc(q.moi.AU)}</pre>` : ""}
     ${w.length ? "<ul>" + w.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" : ""}`;
   $("pl_send").disabled = !API;
