@@ -799,7 +799,7 @@ const plImgs = {tn: [], dg: [], mc: []};
 function cungTen(chu, ten){
   const n = x => unacc(x).toUpperCase().replace(/[^A-Z0-9]+/g, " ").replace(/\bHKD\b/g, "HO KINH DOANH").replace(/\bCTY\b/g, "CONG TY").replace(/\s+/g, " ").trim();
   const a = n(chu), b = n(ten);
-  return a === b || (a.length >= 25 && b.startsWith(a));
+  return a === b || (a.length >= 25 && b.startsWith(a + " "));   // cắt bớt phải đúng hết 1 chữ (FLOWER ≠ FLOWERS)
 }
 const unacc = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
 const plInvalidate = () => { plChecked = null; $("pl_send").disabled = true; };
