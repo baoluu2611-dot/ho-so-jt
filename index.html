@@ -46,7 +46,7 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .chips label{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--ink);cursor:pointer;font-size:14px;background:var(--bg)}
 .chips input{width:auto;margin:0}
 .chips label:has(input:checked){border-color:var(--accent);background:var(--soft)}
-.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:500}
+.btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:500;text-decoration:none;display:inline-block}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.sm{padding:5px 10px;font-size:13px}
@@ -133,11 +133,17 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label id="w_chucvu" hidden><b>Chức danh</b><input id="g_chucvu" placeholder="Chủ hộ / Giám đốc"></label>
       <label><b id="l_so">Số CCCD (12 số)</b><input id="g_so"></label>
       <label><b id="l_ngaycap">Ngày cấp (mặt sau)</b><input id="g_ngaycap" placeholder="dd/mm/yyyy"></label>
+      <label id="w_ngaycap2" hidden><b>Ngày thay đổi gần nhất (nếu GPKD có 2 ngày)</b><input id="g_ngaycap2" placeholder="dd/mm/yyyy — không có thì để trống"></label>
       <label id="w_noicap" hidden><b>Nơi cấp (y chang GPKD)</b><input id="g_noicap" placeholder="SỞ TÀI CHÍNH THÀNH PHỐ HỒ CHÍ MINH"></label>
       <label><b>Ngày sinh</b><input id="g_ngaysinh" placeholder="dd/mm/yyyy"></label>
       <label><b>Giới tính</b><select id="g_gioitinh"><option>Nam</option><option>Nữ</option></select></label>
     </div>
     <label><b id="l_diachi">Địa chỉ thường trú trên CCCD (chép y chang)</b><input id="g_diachi"></label>
+    <div id="w_dcmoi" hidden style="display:grid;gap:6px">
+      <label><b>Địa chỉ mới để in lên hợp đồng</b><input id="g_dcmoi" placeholder="vd: 12 Đường Võ Văn Tần, Phường Bàn Cờ, Thành phố Hồ Chí Minh"></label>
+      <div class="row"><a class="btn sm" href="https://tracuunnt.gdt.gov.vn/tcnnt/mstdn.jsp" target="_blank" rel="noopener">Tra MST (Cổng Thuế)</a><a class="btn sm" href="https://sapnhap.bando.com.vn/" target="_blank" rel="noopener">Tra phường mới (bản đồ sáp nhập)</a><span class="hint" id="dcmoimsg">GPKD ghi địa chỉ cũ (còn quận/huyện): file tạo mã giữ y chang GPKD, hợp đồng in địa chỉ mới này. Tự gõ địa chỉ mới: tra MST trên Cổng Thuế (ra đúng địa chỉ mới của doanh nghiệp) hoặc tra phường mới trên bản đồ sáp nhập.</span></div>
+      <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_dcmoi" style="width:auto"> Tôi đã tra và kiểm tra địa chỉ mới đúng phường mới.</label>
+    </div>
     <div class="note warn">Thông tin "Đọc tự động" do AI đọc nên vẫn có thể sai (dù hiếm): sai 1 số, sai dấu, sai ngày. Đối chiếu <b>từng ô</b> với giấy tờ gốc trước khi gửi.</div>
     <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_gt" style="width:auto"> Tôi đã đối chiếu từng ô ở trên với CCCD / GPKD gốc: họ tên, số giấy tờ, ngày cấp, ngày sinh, địa chỉ đều đúng y chang.</label>
   </section>
@@ -257,6 +263,11 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <div id="pl_cmp" class="note" hidden></div>
     <label class="row" id="w_xnhd" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_hd" style="width:auto"> Tôi đã đối chiếu hợp đồng gốc với file tạo mã: số HĐ, tên, số tài khoản, địa chỉ, giá đều khớp.</label>
     <div id="pl_lamlai" class="note warn" hidden></div>
+    <div id="w_pldcm" hidden style="display:grid;gap:6px">
+      <label><b>Địa chỉ mới để in lên phụ lục</b><input id="pl_dcmoi" placeholder="địa chỉ mới 2 cấp (phường – thành phố)"></label>
+      <div class="row"><a class="btn sm" href="https://tracuunnt.gdt.gov.vn/tcnnt/mstdn.jsp" target="_blank" rel="noopener">Tra MST (Cổng Thuế)</a><a class="btn sm" href="https://sapnhap.bando.com.vn/" target="_blank" rel="noopener">Tra phường mới (bản đồ sáp nhập)</a><span class="hint" id="pldcmmsg"></span></div>
+      <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_pldcm" style="width:auto"> Tôi đã tra và kiểm tra địa chỉ mới đúng phường mới.</label>
+    </div>
   </section>
 
   <div id="pl_main" style="display:grid;gap:16px">
@@ -365,7 +376,7 @@ if (!$("s_bc").value) $("s_bc").value = "028Y91";
 const loai = () => document.querySelector('input[name="loai"]:checked').value;
 function applyLoai(){
   const l = loai(), ca = l === "canhan";
-  $("w_shop").hidden = !ca; $("w_tochuc").hidden = ca; $("w_chucvu").hidden = ca; $("w_noicap").hidden = ca;
+  $("w_shop").hidden = !ca; $("w_tochuc").hidden = ca; $("w_chucvu").hidden = ca; $("w_noicap").hidden = ca; $("w_ngaycap2").hidden = ca; veDcMoi();
   $("gt_title").textContent = ca ? "Thông tin trên CCCD" : "Thông tin trên GPKD";
   $("gt_hint").textContent = ca ? "Tải ảnh CCCD 2 mặt rồi bấm Đọc tự động. Trang tự điền các ô bên dưới, bạn soát lại cho đúng y chang căn cước." : "Tải ảnh hoặc PDF GPKD (thêm ảnh CCCD người đại diện để lấy ngày sinh, giới tính) rồi bấm Đọc tự động. Soát lại y chang giấy phép, kể cả chữ in hoa.";
   $("l_gtimg").textContent = ca ? "Ảnh CCCD 2 mặt" : "Ảnh / PDF GPKD (+ CCCD người đại diện nếu có)";
@@ -442,7 +453,7 @@ function readForm(){
     ten_shop: l === "canhan" ? v("k_shop") : "", sdt: v("k_sdt"), email: v("k_email"),
     giayto: l === "canhan"
       ? {ho_ten:v("g_nguoi"), so:v("g_so"), ngay_cap:v("g_ngaycap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")}
-      : {ten_to_chuc:v("g_tochuc"), nguoi_dai_dien:v("g_nguoi"), chuc_vu:v("g_chucvu"), so:v("g_so"), ngay_cap:v("g_ngaycap"), noi_cap:v("g_noicap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")},
+      : {ten_to_chuc:v("g_tochuc"), nguoi_dai_dien:v("g_nguoi"), chuc_vu:v("g_chucvu"), so:v("g_so"), ngay_cap:v("g_ngaycap"), ngay_cap2:v("g_ngaycap2"), noi_cap:v("g_noicap"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")},
     lay_hang: {so_nha:noCity(v("l_sonha")), duong:noCity(v("l_duong")), phuong:noCity(v("l_phuong")), quan:noCity(v("l_quan"))},
     bank: {chu_tk:v("b_chu"), so_tk:v("b_so"), ngan_hang:v("b_nh")},
     gia: {moc:v("p_moc"), hcm:v("p_hcm"), tinh:v("p_tinh"), tiep_theo:v("p_inc"), ...($("p_bac2").checked ? {moc2:v("p_moc2"), hcm2:v("p_hcm2"), tinh2:v("p_tinh2")} : {})},
@@ -499,11 +510,16 @@ function localChecks(f){
     ["l_sonha","Số nhà lấy hàng"],["l_duong","Đường lấy hàng"],["l_phuong","Phường cũ"],["l_quan","Quận cũ"],["l_bc","Bưu cục lấy hàng"],["b_so","Số tài khoản"],["b_nh","Ngân hàng"],["p_hcm","Giá HCM → HCM"],["p_tinh","Giá HCM → tỉnh"]];
   if (f.loai !== "canhan") need.push(["g_tochuc","Tên hộ KD / công ty"],["g_noicap","Nơi cấp GPKD"],["g_chucvu","Chức danh người đại diện"]);
   for (const [id,n] of need) if (!v(id)) e.push("Thiếu " + n);
-  for (const d of ["g_ngaycap","g_ngaysinh"]) if (v(d) && !/^\d{2}\/\d{2}\/\d{4}$/.test(v(d))) e.push("Ngày phải ghi dạng dd/mm/yyyy: " + v(d));
+  for (const d of ["g_ngaycap","g_ngaycap2","g_ngaysinh"]) if (v(d) && !/^\d{2}\/\d{2}\/\d{4}$/.test(v(d))) e.push("Ngày phải ghi dạng dd/mm/yyyy: " + v(d));
   if (!images.giayto.length) e.push(f.loai==="canhan" ? "Chưa có ảnh CCCD 2 mặt" : "Chưa có ảnh/PDF GPKD");
   if (!images.tin_nhan.length) e.push("Chưa có ảnh tin nhắn chốt với khách");
   if (v("l_bc") && !/^\d{3}[A-Z][A-Z0-9]{2}$/i.test(v("l_bc"))) e.push("Bưu cục lấy hàng chỉ ghi mã bưu cục, vd 028W61 (đang ghi: " + v("l_bc") + ")");
   if (!$("xn_gt").checked) e.push("Chưa tick xác nhận đã đối chiếu thông tin với CCCD / GPKD (mục 3)");
+  if (f.loai !== "canhan" && diaChiCu(v("g_diachi"))){
+    if (!v("g_dcmoi")) e.push("GPKD ghi địa chỉ cũ (còn quận/huyện): nhập địa chỉ mới để in lên hợp đồng (mục 3)");
+    else if (diaChiCu(v("g_dcmoi"))) e.push("Địa chỉ mới vẫn còn quận/huyện: ghi theo địa chỉ mới 2 cấp (phường – thành phố) (mục 3)");
+    else if (!$("xn_dcmoi").checked) e.push("Chưa tick đã kiểm tra địa chỉ mới (mục 3)");
+  }
   if (!$("xn_tk").checked) e.push("Chưa tick xác nhận đã kiểm tra số tài khoản và tên chủ tài khoản (mục 5)");
   if ($("p_khach").value === "cu"){
     if (!digits(v("p_cu_hcm")) || !digits(v("p_cu_tinh"))) e.push("Khách cũ: nhập giá cũ HCM → HCM và HCM → tỉnh (mục 7)");
@@ -546,6 +562,8 @@ function engine(){
     py.runPython("import json as _json, pl as _pl\nif not getattr(_pl, '_aw_pct', False):\n    def _aw(v):\n        \"\"\"Phí khai giá ghi dạng chữ '0.5%', '1%', '0,5%' trong file tạo mã -> số 0.005, 0.01 (cùng giá trị).\"\"\"\n        s = str(v if v is not None else '').strip()\n        if '%' not in s:\n            return v\n        try:\n            return str(round(float(s.replace('%', '').replace(',', '.').strip()) / 100, 6))\n        except ValueError:\n            return v\n    def _dfc5(path, _d0=_pl.doc_file_cu):\n        r = _d0(path)\n        d = _json.loads(r)\n        if not d.get('ok'):\n            return r\n        for k in ('hien_tai', 'goc'):\n            if isinstance(d.get(k), dict) and 'AW' in d[k]:\n                d[k]['AW'] = _aw(d[k]['AW'])\n        for x in d.get('lich_su') or []:\n            doi = []\n            for c in x.get('doi') or []:\n                if c.get('c') == 'AW':\n                    c['cu'], c['moi'] = _aw(c.get('cu')), _aw(c.get('moi'))\n                    try:\n                        if float(c['cu']) == float(c['moi']):\n                            continue\n                    except (TypeError, ValueError):\n                        pass\n                doi.append(c)\n            x['doi'] = doi\n        return _json.dumps(d, ensure_ascii=False)\n    _pl.doc_file_cu = _dfc5\n    _pl._aw_pct = True");
     /* Hợp đồng HKD / công ty: tô đậm tên người đại diện bên khách (giống CHEN KECHAO). Ô ngân hàng: bỏ chữ "Ngân hàng" sale gõ ở đầu (mẫu đã có sẵn), chi nhánh TP.HCM ghi thống nhất "Chi nhánh Hồ Chí Minh" */
     py.runPython("import re as _re, os as _os, io as _io, copy as _cp, zipfile as _zf, unicodedata as _ud, build_from_excel as _bfe, fill_contract as _fc\nif not getattr(_bfe, '_nh_1lan', False):\n    def _bo_nh(s):\n        \"\"\"Mẫu đã có sẵn chữ \"Ngân hàng\" -> bỏ chữ \"Ngân hàng\"/\"NH\" sale gõ ở đầu (\"Ngân Hàng TMCP Tiên Phong\" -> \"TMCP Tiên Phong\"); chi nhánh TP.HCM ghi thống nhất \"Chi nhánh Hồ Chí Minh\".\"\"\"\n        if not isinstance(s, str) or not s.strip():\n            return s\n        s = _ud.normalize('NFC', s)\n        t = _re.sub(r'^\\s*(?:ng[aâ]n\\s*h[aà]ng|nh)(?=[\\s.:,\\-]|$)[\\s.:,\\-]*', '', s, flags=_re.I)\n        t = t if t.strip() else s\n        # Chi nhánh ở TP.HCM: \"CN HCM\", \"hcm\", \"chi nhánh hồ chí minh\", \"TP.HCM\"... -> \" - Chi nhánh Hồ Chí Minh\" như mẫu\n        m = _re.search(r'[\\s,\\-–(]*((?:chi\\s*nh[aá]nh|cn)\\.?\\s*)?(?:(?:tp|th[aà]nh\\s*ph[oố])\\.?\\s*)?(?:h[oồ]\\s*ch[ií]\\s*minh|hcm)\\s*\\.?\\s*\\)?\\s*$', t, flags=_re.I)\n        if m:\n            ngh = t[:m.start()].strip(' -–,(')\n            co_cn = _re.search(r'chi\\s*nh[aá]nh|\\bcn\\b', ngh, flags=_re.I)\n            if ngh and (m.group(1) or not co_cn):\n                t = ngh + ' - Chi nhánh Hồ Chí Minh'\n        return t\n    def _po(d, canhan, partial=False, _p0=_bfe.party_ops):\n        ops = _p0(d, canhan, partial)\n        for o in ops:\n            a = o.get('anchor')\n            if o.get('op') == 'slots' and isinstance(a, list) and any('[Tên Ngân hàng]' in x for x in a):\n                o['values'] = [_bo_nh(x) for x in o['values']]\n        return ops\n    _bfe.party_ops = _po\n    _bfe._bo_nh = _bo_nh\n    _bfe._nh_1lan = True\nif not hasattr(_fc, 'dam_dai_dien'):\n    def dam_dai_dien(path):\n        \"\"\"Hợp đồng tổ chức (HKD, công ty): tô đậm TÊN người đại diện bên khách, giống \"CHEN KECHAO\" bên J&T.\n        Chỉ thêm định dạng đậm, không đổi chữ. Tự kiểm tra: chữ giữ nguyên y hệt, lệch thì không ghi.\"\"\"\n        from lxml import etree\n        W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'\n        tx = lambda e: ''.join(t.text or '' for t in e.iter(W + 't'))\n        zin = _zf.ZipFile(path)\n        root = etree.fromstring(zin.read('word/document.xml'))\n        chu_truoc = [tx(p) for p in root.iter(W + 'p')]\n        dong = []\n        for tr in root.iter(W + 'tr'):\n            tcs = tr.findall(W + 'tc')\n            if len(tcs) >= 3 and tx(tcs[0]).strip() == 'Đại diện bởi' and ' - Chức vụ:' in tx(tcs[-1]):\n                dong.append(tcs[-1])\n        if len(dong) != 1:\n            return 'giữ nguyên (không thấy đúng 1 dòng \"Đại diện bởi\" của khách)'\n        chay = []\n        for r in dong[0].iter(W + 'r'):\n            t = ''.join(x.text or '' for x in r.iter(W + 't'))\n            if not t:\n                continue\n            i = t.find(' - Chức vụ:')\n            if i == 0:\n                break\n            if i > 0:\n                return 'giữ nguyên (tên và chức vụ dính chung 1 đoạn)'\n            chay.append(r)\n        ten = ''.join(''.join(x.text or '' for x in r.iter(W + 't')) for r in chay).strip()\n        if not ten:\n            return 'giữ nguyên (chưa có tên người đại diện)'\n        for r in chay:\n            rpr = r.find(W + 'rPr')\n            if rpr is None:\n                rpr = etree.Element(W + 'rPr'); r.insert(0, rpr)\n            if rpr.find(W + 'b') is None:\n                pos = 0\n                for i, k in enumerate(rpr):\n                    if etree.QName(k).localname in ('rStyle', 'rFonts'):\n                        pos = i + 1\n                rpr.insert(pos, etree.Element(W + 'b'))\n        if [tx(p) for p in root.iter(W + 'p')] != chu_truoc:\n            raise ValueError('dam_dai_dien: chữ bị đổi — không ghi')\n        new = etree.tostring(root, xml_declaration=True, encoding='UTF-8', standalone=True)\n        buf = _io.BytesIO()\n        with _zf.ZipFile(buf, 'w') as zout:\n            for info in zin.infolist():\n                zout.writestr(_cp.copy(info), new if info.filename == 'word/document.xml' else zin.read(info), compress_type=info.compress_type)\n        zin.close()\n        open(path, 'wb').write(buf.getvalue())\n        return 'tô đậm \"' + ten + '\"'\n    _fc.dam_dai_dien = dam_dai_dien\n    def _fc_main6(src, ops_path, dst, report_path, _m0=_fc.main):\n        try:\n            _m0(src, ops_path, dst, report_path); code = 0\n        except SystemExit as e:\n            code = e.code\n        if code in (0, None) and _os.path.exists(dst) and _os.path.basename(src).startswith('L2_ HD') and 'Tổ chức' in src:\n            try: msg = _fc.dam_dai_dien(dst)\n            except Exception as ex: msg = 'giữ nguyên (' + str(ex)[:80] + ')'\n            try: open(report_path, 'a', encoding='utf8').write('\\n\\nTÊN NGƯỜI ĐẠI DIỆN: ' + msg)\n            except Exception: pass\n        raise SystemExit(code)\n    _fc.main = _fc_main6\n");
+    /* GPKD 2 ngày cấp: file tạo mã ghi cả 2 ngày, hợp đồng/phụ lục để trống nơi cấp + ngày cấp. Thông tin IN lên hợp đồng/phụ lục (địa chỉ mới, theo HĐ đã ký) web đặt qua _hien_thi, không ghi vào file tạo mã */
+    py.runPython("import re as _re, build_from_excel as _bfe, form_map as _fm\nif not getattr(_bfe, '_hien_thi_ok', False):\n    _bfe._hien_thi = {}   # web đặt trước mỗi lần tạo file: thông tin IN LÊN hợp đồng / phụ lục (không ghi vào file tạo mã)\n    _COT_IN = ('AH', 'AI', 'AN', 'AJ', 'AK', 'AL', 'W', 'X', 'Y', 'U', 'V')\n    def _po7(d, canhan, partial=False, _p0=_bfe.party_ops):\n        d2 = dict(d)\n        for c, v in (_bfe._hien_thi or {}).items():\n            if c in _COT_IN and str(v or '').strip():\n                d2[c] = str(v).strip()\n        hai_ngay = len(_re.findall(r'\\d{1,2}/\\d{1,2}/\\d{4}', str(d2.get('X') or ''))) >= 2\n        ops = _p0(d2, canhan, partial)\n        if hai_ngay and not canhan:   # GPKD có 2 ngày cấp: hợp đồng / phụ lục để trống nơi cấp + ngày cấp\n            for o in ops:\n                if o.get('op') == 'row' and o.get('label') == 'Mã số thuế':\n                    o['values'] = [o['values'][0], '', '']\n        return ops\n    _bfe.party_ops = _po7\n    _bfe._hien_thi_ok = True\nif not getattr(_fm, '_hai_ngay', False):\n    def _fb7(f, today, _b0=_fm.build):\n        cols, err = _b0(f, today)\n        g = f.get('giayto') or {}\n        n2 = str(g.get('ngay_cap2') or '').strip()\n        if n2 and f.get('loai') != 'canhan':   # file tạo mã ghi cả 2 ngày, mỗi ngày 1 dòng\n            cols['X'] = str(g.get('ngay_cap') or '').strip() + '\\n' + n2\n        return cols, err\n    _fm.build = _fb7\n    _fm._hai_ngay = True\nimport add_row as _ar\nif not getattr(_ar, '_hai_ngay', False):\n    def _td(v, _t0=_ar.to_date):\n        \"\"\"Cột ngày cấp có 2 ngày (GPKD đăng ký lần đầu + thay đổi): ghi nguyên chữ, mỗi ngày 1 dòng.\"\"\"\n        if len(_re.findall(r'\\d{1,2}/\\d{1,2}/\\d{4}', str(v or ''))) >= 2:\n            return str(v).strip()\n        return _t0(v)\n    _ar.to_date = _td\n    _ar._hai_ngay = True\n");
     st("sẵn sàng");
     return py;
   })().catch(err => { pyReady = null; $("engine").textContent = "Bộ tạo file: lỗi tải (" + String(err && err.message || err).slice(0,160) + ")"; throw err; });
@@ -572,7 +590,7 @@ $("btn-check").onclick = async () => {
   checked = {form: f, cols: r.cols, warnings: r.warnings};
   box.className = "note ok";
   box.innerHTML = `<b>Hồ sơ hợp lệ.</b> Kiểm tra lại lần cuối rồi bấm Gửi hồ sơ.
-    <div style="margin-top:8px">Số HĐ: <b>${esc(r.cols.S)}</b><br>Đứng tên: <b>${esc(r.cols.T)}</b> · Chủ TK: <b>${esc(r.cols.AJ)}</b><br>Lấy hàng: ${esc(addrLayHang(r.cols))}</div>
+    <div style="margin-top:8px">Số HĐ: <b>${esc(r.cols.S)}</b><br>Đứng tên: <b>${esc(r.cols.T)}</b> · Chủ TK: <b>${esc(r.cols.AJ)}</b><br>Lấy hàng: ${esc(addrLayHang(r.cols))}${checked.form.loai !== "canhan" && diaChiCu(v("g_diachi")) && v("g_dcmoi") ? `<br>Địa chỉ in trên hợp đồng: <b>${esc(v("g_dcmoi"))}</b> (file tạo mã giữ địa chỉ GPKD)` : ""}${/\n/.test(r.cols.X || "") ? "<br>GPKD 2 ngày cấp: hợp đồng để trống nơi cấp, ngày cấp; file tạo mã ghi cả 2 ngày" : ""}</div>
     <pre class="prev" style="margin-top:8px">${esc(r.cols.AU)}</pre>
     ${r.warnings.length ? "<ul>" + r.warnings.map(w => `<li>${esc(w)}</li>`).join("") + "</ul>" : ""}`;
   $("btn-send").disabled = !API;
@@ -630,6 +648,7 @@ $("btn-ocr").onclick = async () => {
     for (const [k, id] of Object.entries(map)){ const val = d[k]; if (val === null || val === undefined || String(val).trim() === "") continue;
       $(id).value = String(val).trim(); $(id).style.borderColor = "var(--warn)"; n++; }
     if (l === "hkd" && !$("g_chucvu").value) $("g_chucvu").value = "Chủ hộ";
+    veDcMoi();
     invalidate();
     $("xn_gt").checked = false;
     $("ocrmsg").textContent = `Đã điền ${n} ô (viền vàng). AI có thể đọc sai: đối chiếu từng ô với giấy tờ gốc rồi tick xác nhận cuối mục 3.` + (d.canh_bao ? " Lưu ý: " + d.canh_bao : "") + (images.giayto.length > 6 ? " Chỉ đọc 6 ảnh đầu." : "");
@@ -637,6 +656,12 @@ $("btn-ocr").onclick = async () => {
   ocrState();
 };
 /* ---------- tách địa chỉ lấy hàng bằng Gemini (đổi về địa chỉ cũ) ---------- */
+/* địa chỉ cũ (3 cấp, còn quận/huyện) -> hợp đồng / phụ lục phải in địa chỉ mới */
+const diaChiCu = s => /(^|[\s,.])(quận|huyện|thị xã|q\.|h\.)\s*\S/i.test(String(s || "")) || /thành phố thủ đức|tp\.?\s*thủ đức/i.test(String(s || ""));
+async function datHienThi(o){ const py = await engine(); py.globals.set("_ht_json", JSON.stringify(o || {})); py.runPython("import build_from_excel as _b, json as _j; _b._hien_thi = _j.loads(_ht_json)"); }
+function veDcMoi(){ $("w_dcmoi").hidden = !(loai() !== "canhan" && diaChiCu(v("g_diachi"))); }
+$("g_diachi").addEventListener("input", veDcMoi);
+$("g_dcmoi").addEventListener("input", () => { $("xn_dcmoi").checked = false; });
 $("btn-dc").onclick = async () => {
   const t = v("l_raw"), b = $("btn-dc");
   if (!t){ $("dcmsg").textContent = "Dán địa chỉ vào ô trên trước."; return; }
@@ -673,7 +698,8 @@ $("btn-send").onclick = async () => {
     const paths = {};
     for (const [k, arr] of Object.entries(images)){ paths[k] = []; for (let i = 0; i < arr.length; i++){ const p = `/in/${code}_${k}_${i}.${arr[i].ext}`; FS.writeFile(p, new Uint8Array(await arr[i].blob.arrayBuffer())); paths[k].push(p); } }
     paths.duyet_gia = (paths.duyet_gia || []).concat(paths.truong_nhom || []); delete paths.truong_nhom;
-    const r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO());
+    await datHienThi(f.loai !== "canhan" && diaChiCu(v("g_diachi")) && v("g_dcmoi") ? {AH: v("g_dcmoi")} : {});   // hợp đồng in địa chỉ mới, file tạo mã giữ y chang GPKD
+    let r; try { r = await pyCall("chay", JSON.stringify(f), JSON.stringify(paths), "/app/tpl", "/out/" + code, todayISO()); } finally { await datHienThi({}); }
     if (!r.ok){ $("formmsg").textContent = ""; const box = $("checkout"); box.className = "note bad"; box.style.whiteSpace = "pre-wrap"; box.textContent = "Không tạo được file:\n" + (r.errors || []).join("\n") + (r.summary || ""); btn.disabled = false; return; }
     const m = py.pyimport("web_entry"); m.dong_goi(JSON.stringify(r.files), "/out/" + code + ".zip"); m.destroy();
     const zip = FS.readFile("/out/" + code + ".zip");
@@ -1056,6 +1082,12 @@ function plLocal(q){
   const giam = lyDoGiam();
   if (giam.length && !plImgs.dg.length) e.push("Giảm cho khách (" + giam.join("; ") + "): cần hình xin giá lại với TPKD (mục 6)");
   if (giam.length && !plImgs.mc.length) e.push("Giảm cho khách: cần hình minh chứng (sản lượng tăng, giá đối thủ…) (mục 6)");
+  veDcMoiPL();
+  if (!$("w_pldcm").hidden){
+    if (!v("pl_dcmoi")) e.push("Địa chỉ hiện tại là địa chỉ cũ (còn quận/huyện): nhập địa chỉ mới để in lên phụ lục (mục 3)");
+    else if (diaChiCu(v("pl_dcmoi"))) e.push("Địa chỉ mới vẫn còn quận/huyện: ghi theo địa chỉ mới 2 cấp (mục 3)");
+    else if (!$("xn_pldcm").checked) e.push("Chưa tick đã kiểm tra địa chỉ mới để in lên phụ lục (mục 3)");
+  }
   return e;
 }
 /* báo đúng lỗi thay vì luôn ghi "kiểm tra mạng" */
@@ -1068,15 +1100,38 @@ function loiBoTao(err){
 }
 function plErr(errs){ const box = $("pl_checkout"); box.hidden = false; box.className = "note bad"; box.innerHTML = "<b>Cần sửa trước khi gửi:</b><ul>" + errs.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>"; }
 
+/* Phụ lục in ĐÚNG như hợp đồng đã ký (bản Word): ô sale đổi -> thông tin mới; ô phụ lục trước đã đổi -> theo phụ lục mới nhất (file tạo mã);
+   còn lại -> theo hợp đồng Word. Chỉ in lên phụ lục, không sửa file tạo mã. Hợp đồng PDF (AI đọc) -> giữ theo file tạo mã */
+const COT_IN = {AH: "Địa chỉ", AI: "SĐT", AN: "Gmail", AJ: "Chủ TK", AK: "Số TK", AL: "Ngân hàng", W: "MST/CCCD", X: "Ngày cấp", Y: "Nơi cấp", U: "Người đại diện", V: "Chức vụ"};
+function plHienThi(q){
+  const o = {}, doi = new Set((PL.lich_su || []).flatMap(x => (x.doi || []).map(d => d.c)));
+  const hd = plHD && plHD.loai === "docx" && plHD.data && plHD.data.hien_tai;
+  if (hd) for (const c of Object.keys(COT_IN)){
+    const x = String(hd[c] || "").trim();
+    if (x && !(c in q.moi) && !doi.has(c) && x !== String(q.hien_tai[c] || "").trim()) o[c] = x;
+  }
+  if (!PL.canhan && !("AH" in q.moi) && diaChiCu(o.AH || q.hien_tai.AH) && v("pl_dcmoi")) o.AH = v("pl_dcmoi");
+  return o;
+}
+function veDcMoiPL(){
+  const w = $("w_pldcm");
+  if (!PL || PL.canhan){ w.hidden = true; return; }
+  const hd = plHD && plHD.loai === "docx" && plHD.data && plHD.data.hien_tai, doi = new Set((PL.lich_su || []).flatMap(x => (x.doi || []).map(d => d.c)));
+  const ah = (hd && hd.AH && !doi.has("AH")) ? hd.AH : (PL.hien_tai || {}).AH;
+  w.hidden = !(diaChiCu(ah) && !doiChon().includes("diachi"));
+  $("pldcmmsg").textContent = w.hidden ? "" : "Địa chỉ hiện tại còn quận/huyện (" + ah + "): phụ lục in địa chỉ mới, file tạo mã giữ nguyên.";
+}
+$("pl_dcmoi").addEventListener("input", () => { $("xn_pldcm").checked = false; });
 async function plRun(code){
   const q = plReq(); const py = await engine(); const FS = py.FS; try { FS.mkdir("/in"); } catch(_){}
   const anh = [], xl = {};
   for (const k of ["tn", "dg", "mc"]) for (let i = 0; i < plImgs[k].length; i++){
     const p = `/in/${code}_pl${k}_${i}.${plImgs[k][i].ext}`; FS.writeFile(p, new Uint8Array(await plImgs[k][i].blob.arrayBuffer())); anh.push(p); (xl[k] = xl[k] || []).push(p); }
   const m = py.pyimport("pl");
-  /* file tạo mã: gắn hình minh chứng + hình xin giá lại vào dòng phụ lục */
-  try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: anh, xlsx: [...(xl.mc || []), ...(xl.dg || [])]}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
-  finally { m.destroy(); }
+  await datHienThi(plHienThi(q));
+  /* file tạo mã: gắn hình minh chứng + hình xin giá lại + tin nhắn khách yêu cầu vào dòng phụ lục */
+  try { return JSON.parse(m.chay_pl(JSON.stringify(q), JSON.stringify({tin_nhan: anh, xlsx: [...(xl.mc || []), ...(xl.dg || []), ...(xl.tn || [])]}), plOld, "/app/tpl", "/out/" + code, todayISO())); }
+  finally { m.destroy(); await datHienThi({}); }
 }
 /* chặn trùng số: hỏi Google Sheet các phụ lục đã gửi qua web cho mã KH này */
 let plGui = null;
@@ -1132,6 +1187,7 @@ $("pl_check").onclick = async () => {
   box.innerHTML = `<b>Phụ lục hợp lệ:</b> ${esc(r.tags.join(", "))} cho <b>${esc(r.ten)}</b>.
     <div style="margin-top:8px">Mã KH: <b>${esc(q.ma_kh)}</b> · Số HĐ gốc: ${esc(q.hd_no)}<br>Ngày phụ lục: ${esc(q.ngay)} · ${q.ky === "tay" ? "Ký tay" : "Ký online"}</div>
     ${r.rows.map(x => `<div style="margin-top:6px"><b>${esc(x.S.split(" - ")[0])}</b>: ${esc(x.I.replace(/^\S+\s+\S+\s*/, ""))}</div>`).join("")}
+    ${(() => { const o = plHienThi(q), k = Object.keys(o); return k.length ? `<div style="margin-top:6px">In lên phụ lục theo hợp đồng đã ký: ${k.map(c => `${esc(COT_IN[c])} <b>${esc(o[c])}</b>`).join("; ")} (file tạo mã không đổi)</div>` : ""; })()}
     ${q.moi.AU ? `<pre class="prev" style="margin-top:8px">${esc(q.moi.AU)}</pre>` : ""}
     ${w.length ? "<ul>" + w.map(x => `<li>${esc(x)}</li>`).join("") + "</ul>" : ""}`;
   $("pl_send").disabled = !API;
