@@ -74,7 +74,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 <body>
 <header><div class="bar">
   <div class="brand"><i></i>Hồ sơ hợp đồng J&amp;T</div>
-  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 15:45</span>
+  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 16:00</span>
   <nav><button type="button" id="tab-hd" aria-current="true">Hợp đồng mới</button><button type="button" id="tab-pl" aria-current="false">Làm phụ lục</button></nav>
 </div></header>
 
@@ -90,7 +90,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Mã nhân viên</b><input id="s_msnv" inputmode="numeric" placeholder="Mã nhân viên"></label>
       <label><b>Khu</b><input id="s_khu" placeholder="3"></label>
       <label><b>SĐT sale</b><input id="s_sdt" inputmode="tel"></label>
-      <label hidden><b>Bưu cục báo tạo mã</b><input id="s_bc" placeholder="028Y91"></label>
+      <label><b>Bưu cục báo tạo mã</b><input id="s_bc" placeholder="Mã bưu cục, vd 028W61" style="text-transform:uppercase"></label>
       <label><b>Email nhận file</b><input id="s_email" type="email" placeholder="email của sale"></label>
       <label id="w_manhom" hidden><b>Mã nhóm</b><input id="s_manhom" placeholder="Hỏi trưởng nhóm"></label>
     </div>
@@ -167,7 +167,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Đường</b><input id="l_duong" placeholder="Đường Ba Tháng Hai"></label>
       <label><b>Phường / xã cũ</b><input id="l_phuong" placeholder="Phường 11"></label>
       <label><b>Quận / huyện cũ</b><input id="l_quan" placeholder="Quận 10"></label>
-      <label><b>Bưu cục lấy hàng</b><input id="l_bc" placeholder="Mã bưu cục, vd 028W61" style="text-transform:uppercase"></label>
+      <label hidden><b>Bưu cục lấy hàng</b><input id="l_bc" placeholder="Mã bưu cục, vd 028W61" style="text-transform:uppercase"></label>
     </div>
   </section>
 
@@ -379,8 +379,8 @@ function newCode(){ const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s="HS"; cons
 $("presets").innerHTML = PRESETS.map((p,i)=>`<button type="button" class="btn sm" data-i="${i}">${p.nick}</button>`).join("") + `<span class="hint" style="align-self:center">Sale nhóm khác tự điền, trang sẽ nhớ cho lần sau.</span>`;
 $("presets").onclick = e => { const i = e.target.dataset.i; if (i===undefined) return; const p = PRESETS[i];
   $("s_ten").value = p.ten; $("s_msnv").value = p.msnv; $("s_khu").value = p.khu; $("s_sdt").value = p.sdt; $("s_bc").value = p.bc; if (!p.ten) $("s_ten").focus(); invalidate(); };
-const savedSale = store.get("jt-sale"); if (savedSale) for (const k of ["s_ten","s_msnv","s_khu","s_sdt","s_bc","s_email","s_manhom"]) if (savedSale[k]) $(k).value = savedSale[k];
-if (!$("s_bc").value) $("s_bc").value = "028Y91";
+const savedSale = store.get("jt-sale"); if (savedSale) for (const k of ["s_ten","s_msnv","s_khu","s_sdt","s_email","s_manhom"]) if (savedSale[k]) $(k).value = savedSale[k];
+/* bưu cục báo tạo mã: để trống mỗi hồ sơ, sale tự gõ cho từng khách */
 
 
 const loai = () => document.querySelector('input[name="loai"]:checked').value;
@@ -461,8 +461,8 @@ function readForm(){
   const l = loai();
   return {
     loai: l, ky: document.querySelector('input[name="ky"]:checked').value,
-    sale: {ten:v("s_ten"), msnv:v("s_msnv"), khu:v("s_khu"), sdt:v("s_sdt"), bc_tao_ma:v("l_bc").toUpperCase() || v("s_bc")}   /* bưu cục tạo mã = bưu cục lấy hàng */,
-    bc_lay_hang: v("l_bc").toUpperCase(), crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
+    sale: {ten:v("s_ten"), msnv:v("s_msnv"), khu:v("s_khu"), sdt:v("s_sdt"), bc_tao_ma:v("s_bc").toUpperCase()},
+    bc_lay_hang: v("s_bc").toUpperCase() /* bưu cục lấy hàng = bưu cục báo tạo mã */, crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
     ten_shop: l === "canhan" ? v("k_shop") : "", sdt: v("k_sdt"), email: v("k_email"),
     giayto: l === "canhan"
       ? {ho_ten:v("g_nguoi"), so:v("g_so"), ngay_cap:v("g_ngaycap"), noi_cap:v("g_noicap"), het_han:v("g_hethan"), ngay_sinh:v("g_ngaysinh"), gioi_tinh:$("g_gioitinh").value, dia_chi:v("g_diachi")}
@@ -521,9 +521,9 @@ function veXinGia(){
 ["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
 function localChecks(f){
   const e = [];
-  const need = [["s_ten","Họ tên sale"],["s_msnv","Mã nhân viên sale"],["s_sdt","SĐT sale"],["k_sdt","SĐT khách"],["k_email","Gmail đối soát"],
+  const need = [["s_ten","Họ tên sale"],["s_msnv","Mã nhân viên sale"],["s_sdt","SĐT sale"],["s_bc","Bưu cục báo tạo mã"],["k_sdt","SĐT khách"],["k_email","Gmail đối soát"],
     ["g_nguoi", f.loai==="canhan" ? "Họ tên trên CCCD" : "Người đại diện"],["g_so","Số giấy tờ"],["g_ngaycap","Ngày cấp"],["g_diachi","Địa chỉ trên giấy tờ"],
-    ["l_sonha","Số nhà lấy hàng"],["l_duong","Đường lấy hàng"],["l_phuong","Phường cũ"],["l_quan","Quận cũ"],["l_bc","Bưu cục lấy hàng"],["b_so","Số tài khoản"],["b_nh","Ngân hàng"],["p_hcm","Giá HCM → HCM"],["p_tinh","Giá HCM → tỉnh"]];
+    ["l_sonha","Số nhà lấy hàng"],["l_duong","Đường lấy hàng"],["l_phuong","Phường cũ"],["l_quan","Quận cũ"],["b_so","Số tài khoản"],["b_nh","Ngân hàng"],["p_hcm","Giá HCM → HCM"],["p_tinh","Giá HCM → tỉnh"]];
   if (f.loai !== "canhan") need.push(["g_tochuc","Tên hộ KD / công ty"],["g_noicap","Nơi cấp GPKD"],["g_chucvu","Chức danh người đại diện"]);
   else need.push(["g_noicap","Nơi cấp CCCD (mặt sau thẻ)"],["g_hethan","Ngày hết hạn CCCD (Có giá trị đến)"]);
   for (const [id,n] of need) if (!v(id)) e.push("Thiếu " + n);
@@ -540,7 +540,7 @@ function localChecks(f){
   if (f.loai === "canhan" && f.ky === "tay" && !v("k_lydotay")) e.push("Khách cá nhân mặc định ký online: chọn ký tay thì ghi lý do (mục 2)");
   if (digits(v("p_hcm")) && digits(v("p_tinh")) && digits(v("p_hcm")) < 22000 && digits(v("p_tinh")) < 22000 && digits(v("h_sl")) < 1500)
     e.push("Giá cả 2 tuyến dưới 22.000đ thì sản lượng cam kết phải từ 1.500 đơn/tháng trở lên: nhập lại sản lượng cam kết của khách (mục 6)");
-  if (v("l_bc") && !/^\d{3}[A-Z][A-Z0-9]{2}$/i.test(v("l_bc"))) e.push("Bưu cục lấy hàng chỉ ghi mã bưu cục, vd 028W61 (đang ghi: " + v("l_bc") + ")");
+  if (v("s_bc") && !/^\d{3}[A-Z][A-Z0-9]{2}$/i.test(v("s_bc"))) e.push("Bưu cục báo tạo mã chỉ ghi mã bưu cục, vd 028W61 (đang ghi: " + v("s_bc") + ")");
   if (!$("xn_gt").checked) e.push("Chưa tick xác nhận đã đối chiếu thông tin với CCCD / GPKD (mục 3)");
   if (f.loai !== "canhan" && diaChiCu(v("g_diachi"))){
     if (!v("g_dcmoi")) e.push("GPKD ghi địa chỉ cũ (còn quận/huyện): nhập địa chỉ mới để in lên hợp đồng (mục 3)");
@@ -736,7 +736,7 @@ document.querySelectorAll("#view-form input, #view-form select").forEach(el => e
 ["b_chu","b_so","b_nh"].forEach(id => $(id).addEventListener("input", () => { $("xn_tk").checked = false; }));
 ["b_chu","g_tochuc"].forEach(id => $(id).addEventListener("input", () => { $("xn_khacten").checked = false; $("w_khacten").hidden = true; }));
 $("pl_rows").addEventListener("input", e => { if (e.target.id === "pa_AJ"){ $("xn_plkhacten").checked = false; $("w_plkhacten").hidden = true; } });
-$("l_bc").addEventListener("change", () => { $("l_bc").value = $("l_bc").value.trim().toUpperCase(); });
+$("s_bc").addEventListener("change", () => { $("s_bc").value = $("s_bc").value.trim().toUpperCase(); });
 
 /* ---------- tạo file + gửi ---------- */
 let lastCode = null;
@@ -1096,7 +1096,7 @@ function plThumbs(k){ const el = $("t_pl_" + k); el.innerHTML = "";
 /* ---------- gom yêu cầu cho bộ tạo file ---------- */
 function plReq(){
   const c = Object.assign({}, PL.hien_tai), ch = doiChon();
-  if (String(c.N || "").trim()) c.M = String(c.N).trim();   // bưu cục tạo mã = bưu cục lấy hàng
+  if (String(c.M || "").trim()) c.N = String(c.M).trim();   // bưu cục lấy hàng = bưu cục báo tạo mã
   const tags = plTags(), moi = {};
   for (const [k, cols] of [["sdt", ["AI"]], ["email", ["AN"]], ["diachi", ["AH"]], ["bank", ["AJ", "AK", "AL"]]])
     if (ch.includes(k)) for (const col of cols) moi[col] = (nho("pa_" + col) || "").trim();
@@ -1300,8 +1300,8 @@ $("pl_send").onclick = async () => {
   catch(e){ $("access").hidden = false; $("access").textContent = "Chưa kết nối được Google Sheet. Kiểm tra mạng hoặc báo chủ trang."; }
 })();
 /* dấu * đỏ cho ô / ảnh / tick bắt buộc (ô có điều kiện chỉ hiện khi cần) */
-["s_ten","s_msnv","s_sdt","s_email","s_manhom","k_sdt","k_email","f_giayto","g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_hethan","g_diachi","g_dcmoi",
- "l_sonha","l_duong","l_phuong","l_quan","l_bc","b_so","b_nh","p_hcm","p_tinh","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung","f_tin_nhan","k_lydotay",
+["s_ten","s_msnv","s_sdt","s_bc","s_email","s_manhom","k_sdt","k_email","f_giayto","g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_hethan","g_diachi","g_dcmoi",
+ "l_sonha","l_duong","l_phuong","l_quan","b_so","b_nh","p_hcm","p_tinh","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung","f_tin_nhan","k_lydotay",
  "xn_gt","xn_tk","xn_dcmoi","xn_token","pl_xlsx","pl_hd","pl_makh","pl_dcmoi","xn_pldcm","xn_hd","xn_tu"].forEach(id => {
   const el = $(id); if (!el) return;
   const lb = document.querySelector(`label[for="${id}"]`) || el.closest("label"); if (!lb) return;
