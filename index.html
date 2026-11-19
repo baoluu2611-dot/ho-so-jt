@@ -74,7 +74,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 <body>
 <header><div class="bar">
   <div class="brand"><i></i>Hồ sơ hợp đồng J&amp;T</div>
-  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 15:30</span>
+  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 15:45</span>
   <nav><button type="button" id="tab-hd" aria-current="true">Hợp đồng mới</button><button type="button" id="tab-pl" aria-current="false">Làm phụ lục</button></nav>
 </div></header>
 
@@ -90,7 +90,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Mã nhân viên</b><input id="s_msnv" inputmode="numeric" placeholder="Mã nhân viên"></label>
       <label><b>Khu</b><input id="s_khu" placeholder="3"></label>
       <label><b>SĐT sale</b><input id="s_sdt" inputmode="tel"></label>
-      <label><b>Bưu cục báo tạo mã</b><input id="s_bc" placeholder="028Y91"></label>
+      <label hidden><b>Bưu cục báo tạo mã</b><input id="s_bc" placeholder="028Y91"></label>
       <label><b>Email nhận file</b><input id="s_email" type="email" placeholder="email của sale"></label>
       <label id="w_manhom" hidden><b>Mã nhóm</b><input id="s_manhom" placeholder="Hỏi trưởng nhóm"></label>
     </div>
@@ -461,7 +461,7 @@ function readForm(){
   const l = loai();
   return {
     loai: l, ky: document.querySelector('input[name="ky"]:checked').value,
-    sale: {ten:v("s_ten"), msnv:v("s_msnv"), khu:v("s_khu"), sdt:v("s_sdt"), bc_tao_ma:v("s_bc")},
+    sale: {ten:v("s_ten"), msnv:v("s_msnv"), khu:v("s_khu"), sdt:v("s_sdt"), bc_tao_ma:v("l_bc").toUpperCase() || v("s_bc")}   /* bưu cục tạo mã = bưu cục lấy hàng */,
     bc_lay_hang: v("l_bc").toUpperCase(), crm: v("k_crm"), doi_thu: $("h_doithu").value, mat_hang: $("h_mathang").value, san_luong: v("h_sl"), nguon: $("h_nguon").value,
     ten_shop: l === "canhan" ? v("k_shop") : "", sdt: v("k_sdt"), email: v("k_email"),
     giayto: l === "canhan"
@@ -521,7 +521,7 @@ function veXinGia(){
 ["p_bac2","p_khach"].forEach(id => $(id).addEventListener("change", () => { veXinGia(); invalidate(); }));
 function localChecks(f){
   const e = [];
-  const need = [["s_ten","Họ tên sale"],["s_msnv","Mã nhân viên sale"],["s_sdt","SĐT sale"],["s_bc","Bưu cục báo tạo mã"],["k_sdt","SĐT khách"],["k_email","Gmail đối soát"],
+  const need = [["s_ten","Họ tên sale"],["s_msnv","Mã nhân viên sale"],["s_sdt","SĐT sale"],["k_sdt","SĐT khách"],["k_email","Gmail đối soát"],
     ["g_nguoi", f.loai==="canhan" ? "Họ tên trên CCCD" : "Người đại diện"],["g_so","Số giấy tờ"],["g_ngaycap","Ngày cấp"],["g_diachi","Địa chỉ trên giấy tờ"],
     ["l_sonha","Số nhà lấy hàng"],["l_duong","Đường lấy hàng"],["l_phuong","Phường cũ"],["l_quan","Quận cũ"],["l_bc","Bưu cục lấy hàng"],["b_so","Số tài khoản"],["b_nh","Ngân hàng"],["p_hcm","Giá HCM → HCM"],["p_tinh","Giá HCM → tỉnh"]];
   if (f.loai !== "canhan") need.push(["g_tochuc","Tên hộ KD / công ty"],["g_noicap","Nơi cấp GPKD"],["g_chucvu","Chức danh người đại diện"]);
@@ -1095,7 +1095,9 @@ function plThumbs(k){ const el = $("t_pl_" + k); el.innerHTML = "";
 
 /* ---------- gom yêu cầu cho bộ tạo file ---------- */
 function plReq(){
-  const c = Object.assign({}, PL.hien_tai), ch = doiChon(), tags = plTags(), moi = {};
+  const c = Object.assign({}, PL.hien_tai), ch = doiChon();
+  if (String(c.N || "").trim()) c.M = String(c.N).trim();   // bưu cục tạo mã = bưu cục lấy hàng
+  const tags = plTags(), moi = {};
   for (const [k, cols] of [["sdt", ["AI"]], ["email", ["AN"]], ["diachi", ["AH"]], ["bank", ["AJ", "AK", "AL"]]])
     if (ch.includes(k)) for (const col of cols) moi[col] = (nho("pa_" + col) || "").trim();
   if (ch.includes("ds")) moi.AZ = nho("pb_AZ") || "";
@@ -1298,7 +1300,7 @@ $("pl_send").onclick = async () => {
   catch(e){ $("access").hidden = false; $("access").textContent = "Chưa kết nối được Google Sheet. Kiểm tra mạng hoặc báo chủ trang."; }
 })();
 /* dấu * đỏ cho ô / ảnh / tick bắt buộc (ô có điều kiện chỉ hiện khi cần) */
-["s_ten","s_msnv","s_sdt","s_bc","s_email","s_manhom","k_sdt","k_email","f_giayto","g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_hethan","g_diachi","g_dcmoi",
+["s_ten","s_msnv","s_sdt","s_email","s_manhom","k_sdt","k_email","f_giayto","g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_hethan","g_diachi","g_dcmoi",
  "l_sonha","l_duong","l_phuong","l_quan","l_bc","b_so","b_nh","p_hcm","p_tinh","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung","f_tin_nhan","k_lydotay",
  "xn_gt","xn_tk","xn_dcmoi","xn_token","pl_xlsx","pl_hd","pl_makh","pl_dcmoi","xn_pldcm","xn_hd","xn_tu"].forEach(id => {
   const el = $(id); if (!el) return;
