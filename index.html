@@ -180,6 +180,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     </div>
     <div class="note warn">Kiểm tra kỹ số tài khoản và tên chủ tài khoản trước khi gửi.</div>
     <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_tk" style="width:auto"> Tôi đã kiểm tra: số tài khoản đúng, app ngân hàng hiện đúng tên chủ tài khoản ở trên.</label>
+    <label class="row" id="w_khacten" hidden style="color:var(--bad);font-size:14px"><input type="checkbox" id="xn_khacten" style="width:auto"> Chủ tài khoản KHÁC tên đứng hợp đồng. Tôi đã kiểm tra, vẫn làm và tự chịu trách nhiệm.</label>
   </section>
 
   <section class="card">
@@ -296,6 +297,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <div id="pl_tucmp" class="note" hidden></div>
     <label class="row" id="w_xntu" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_tu" style="width:auto"> Tôi đã xem lại hợp đồng / phụ lục gốc: thông tin cũ tôi nhập là đúng.</label>
     <div class="chips" id="w_pltk" hidden><label><input type="checkbox" id="xn_pltk">Đã kiểm tra số tài khoản và tên chủ tài khoản mới</label></div>
+    <label class="row" id="w_plkhacten" hidden style="color:var(--bad);font-size:14px"><input type="checkbox" id="xn_plkhacten" style="width:auto"> Chủ tài khoản mới KHÁC tên đứng hợp đồng. Tôi đã kiểm tra, vẫn làm và tự chịu trách nhiệm.</label>
     <div id="pl_xg" class="note" hidden></div>
   </section>
 
@@ -542,6 +544,10 @@ function localChecks(f){
     else if (!$("xn_dcmoi").checked) e.push("Chưa tick đã kiểm tra địa chỉ mới (mục 3)");
   }
   if (!$("xn_tk").checked) e.push("Chưa tick xác nhận đã kiểm tra số tài khoản và tên chủ tài khoản (mục 5)");
+  const khacTen = f.loai !== "canhan" && v("b_chu") && v("g_tochuc") && !cungTen(v("b_chu"), v("g_tochuc"));
+  $("w_khacten").hidden = !khacTen;
+  if (khacTen && !$("xn_khacten").checked)
+    e.push(`Chủ tài khoản "${v("b_chu")}" khác tên ${f.loai === "hkd" ? "hộ kinh doanh" : "công ty"} trên GPKD "${v("g_tochuc")}": sửa lại cho đúng, hoặc tick ô đỏ ở mục 5 nếu vẫn làm (tự chịu trách nhiệm)`);
   if ($("p_khach").value === "cu"){
     if (!digits(v("p_cu_hcm")) || !digits(v("p_cu_tinh"))) e.push("Khách cũ: nhập giá cũ HCM → HCM và HCM → tỉnh (mục 7)");
     if (soTP(v("p_cu_sl")) === null) e.push("Khách cũ: nhập sản lượng gần đây (mục 7)");
@@ -722,6 +728,8 @@ document.querySelectorAll("#view-form input, #view-form select").forEach(el => e
 /* sửa thông tin sau khi đã tick xác nhận thì phải tick lại */
 ["g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_ngaysinh","g_gioitinh","g_diachi","g_hethan","g_ngaycap2"].forEach(id => $(id).addEventListener("input", () => { $("xn_gt").checked = false; }));
 ["b_chu","b_so","b_nh"].forEach(id => $(id).addEventListener("input", () => { $("xn_tk").checked = false; }));
+["b_chu","g_tochuc"].forEach(id => $(id).addEventListener("input", () => { $("xn_khacten").checked = false; $("w_khacten").hidden = true; }));
+$("pl_rows").addEventListener("input", e => { if (e.target.id === "pa_AJ"){ $("xn_plkhacten").checked = false; $("w_plkhacten").hidden = true; } });
 $("l_bc").addEventListener("change", () => { $("l_bc").value = $("l_bc").value.trim().toUpperCase(); });
 
 /* ---------- tạo file + gửi ---------- */
@@ -787,6 +795,12 @@ let plOld = null;       // đường dẫn file tạo mã cũ trong bộ tạo f
 let plHD = null;        // hợp đồng cũ: {loai:'docx'|'pdf', data, loi}
 let plChecked = null;
 const plImgs = {tn: [], dg: [], mc: []};
+/* chủ TK so với tên đứng hợp đồng: bỏ dấu, viết hoa, HKD = HỘ KINH DOANH, CTY = CÔNG TY; ngân hàng cắt bớt tên dài (từ 25 ký tự, khớp phần đầu) vẫn tính là trùng */
+function cungTen(chu, ten){
+  const n = x => unacc(x).toUpperCase().replace(/[^A-Z0-9]+/g, " ").replace(/\bHKD\b/g, "HO KINH DOANH").replace(/\bCTY\b/g, "CONG TY").replace(/\s+/g, " ").trim();
+  const a = n(chu), b = n(ten);
+  return a === b || (a.length >= 25 && b.startsWith(a));
+}
 const unacc = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
 const plInvalidate = () => { plChecked = null; $("pl_send").disabled = true; };
 $("view-pl").addEventListener("input", e => { if (e.target.type !== "file") plInvalidate(); });
@@ -1110,6 +1124,10 @@ function plLocal(q){
   if (ch.includes("bank")){
     if (!["pa_AJ", "pa_AK", "pa_AL"].some(id => nho(id).trim())) e.push("Chưa nhập tài khoản ngân hàng mới (mục 5)");
     if (!$("xn_pltk").checked) e.push("Chưa tick đã kiểm tra số tài khoản và tên chủ tài khoản mới (mục 5)");
+    const tenHD = PL.canhan ? (PL.hien_tai.U || PL.hien_tai.T) : PL.hien_tai.T;
+    const plKhac = !!(nho("pa_AJ").trim() && tenHD && !cungTen(nho("pa_AJ"), tenHD));
+    $("w_plkhacten").hidden = !plKhac;
+    if (plKhac && !$("xn_plkhacten").checked) e.push(`Chủ tài khoản mới "${nho("pa_AJ").trim()}" khác người đứng tên hợp đồng "${tenHD}": sửa lại cho đúng, hoặc tick ô đỏ ở mục 5 nếu vẫn làm (tự chịu trách nhiệm)`);
   }
   if (ch.includes("ds") && !nho("pb_AZ")) e.push("Chưa chọn lịch đối soát mới (mục 5)");
   const thieuCu = tuCot().filter(([id]) => !String(nho(id) ?? "").trim()).map(x => x[1]);
