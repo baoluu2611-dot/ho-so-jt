@@ -74,7 +74,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 <body>
 <header><div class="bar">
   <div class="brand"><i></i>Hồ sơ hợp đồng J&amp;T</div>
-  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 16:00</span>
+  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 16:30</span>
   <nav><button type="button" id="tab-hd" aria-current="true">Hợp đồng mới</button><button type="button" id="tab-pl" aria-current="false">Làm phụ lục</button></nav>
 </div></header>
 
@@ -1224,7 +1224,7 @@ function veLamLai(){
   box.innerHTML = "<b>Mã KH này đã có phụ lục gửi qua web nhưng file tạo mã bạn tải lên chưa có:</b>" +
     ds.map(x => `<label class="row" style="color:var(--ink);font-size:14px;margin-top:6px"><input type="checkbox" data-lamlai="${esc(x.code)}" style="width:auto"${lamLai.has(x.code) ? " checked" : ""}> ${esc(x.tags.join("+"))} – hồ sơ ${esc(x.code)}, gửi ${esc(x.ngay)} (${x.xong ? "đã gửi file" : "đang chờ duyệt"}): <b>phụ lục này làm sai, làm lại</b></label>`).join("") +
     `<label style="margin-top:8px"><b>Lý do làm lại (bắt buộc khi tick)</b><input id="pl_lydo" value="${esc(ly)}" placeholder="vd: ghi sai SĐT mới của khách"></label>` +
-    `<div class="hint" style="margin-top:6px">Không phải làm sai mà chỉ thiếu file: tải file tạo mã trong mail của lần phụ lục gần nhất, không tick. Làm lại phụ lục sai: dùng file tạo mã của lần TRƯỚC phụ lục sai. Hồ sơ làm lại luôn chờ trưởng nhóm duyệt, phụ lục sai sẽ bị huỷ.</div>`;
+    `<div class="hint" style="margin-top:6px">Không phải làm sai mà chỉ thiếu file: tải file tạo mã trong mail của lần phụ lục gần nhất, không tick. Làm lại phụ lục sai: dùng file tạo mã của lần TRƯỚC phụ lục sai. Hồ sơ làm lại: mã NV tự duyệt gửi file ngay, mã khác chờ trưởng nhóm duyệt; phụ lục sai sẽ bị huỷ.</div>`;
 }
 $("pl_lamlai").addEventListener("change", e => { const c = e.target.dataset && e.target.dataset.lamlai; if (c){ if (e.target.checked) lamLai.add(c); else lamLai.delete(c); plInvalidate(); } });
 function loiDaGui(){
