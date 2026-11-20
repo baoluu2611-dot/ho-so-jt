@@ -74,7 +74,7 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 <body>
 <header><div class="bar">
   <div class="brand"><i></i>Hồ sơ hợp đồng J&amp;T</div>
-  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 19/11 16:30</span>
+  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 20/11 11:45</span>
   <nav><button type="button" id="tab-hd" aria-current="true">Hợp đồng mới</button><button type="button" id="tab-pl" aria-current="false">Làm phụ lục</button></nav>
 </div></header>
 
@@ -179,8 +179,9 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
       <label><b>Số tài khoản</b><input id="b_so" inputmode="numeric"></label>
       <label><b>Ngân hàng - chi nhánh</b><input id="b_nh" placeholder="Techcombank - Chi nhánh Hồ Chí Minh"></label>
     </div>
-    <div class="note warn">Kiểm tra kỹ số tài khoản và tên chủ tài khoản trước khi gửi.</div>
-    <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_tk" style="width:auto"> Tôi đã kiểm tra: số tài khoản đúng, app ngân hàng hiện đúng tên chủ tài khoản ở trên.</label>
+    <div class="note warn">Tên ngân hàng và tên chủ tài khoản phải đúng từng ký tự (hệ thống JMS đối chiếu). Sai thông tin thì khách có thể không nhận được tiền đối soát COD.<br>Sacombank: ghi tên mới <b>TMCP Sài Gòn Tài Lộc</b>, xác nhận lại với khách. VietinBank: lấy số tài khoản ngân hàng, không dùng số điện thoại 10 số.</div>
+    <label class="row" style="color:var(--ink);font-size:14px"><input type="checkbox" id="xn_tk" style="width:auto"> Tôi đã kiểm tra: số tài khoản đúng, tên ngân hàng và tên chủ tài khoản đúng từng ký tự như app ngân hàng.</label>
+    <label class="row" id="w_sacom" hidden style="color:var(--bad);font-size:14px"><input type="checkbox" id="xn_sacom" style="width:auto"> Sacombank đã đổi tên thành Ngân hàng TMCP Sài Gòn Tài Lộc: tôi đã xác nhận lại tên ngân hàng với khách.</label>
     <label class="row" id="w_khacten" hidden style="color:var(--bad);font-size:14px"><input type="checkbox" id="xn_khacten" style="width:auto"> Chủ tài khoản KHÁC tên đứng hợp đồng. Tôi đã kiểm tra, vẫn làm và tự chịu trách nhiệm.</label>
   </section>
 
@@ -297,7 +298,8 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
     <div class="tablewrap"><table id="pl_bang" hidden><thead><tr><th>Mục</th><th>Đang dùng (cũ)</th><th>Đổi sang (mới)</th></tr></thead><tbody id="pl_rows"></tbody></table></div>
     <div id="pl_tucmp" class="note" hidden></div>
     <label class="row" id="w_xntu" style="color:var(--ink);font-size:14px" hidden><input type="checkbox" id="xn_tu" style="width:auto"> Tôi đã xem lại hợp đồng / phụ lục gốc: thông tin cũ tôi nhập là đúng.</label>
-    <div class="chips" id="w_pltk" hidden><label><input type="checkbox" id="xn_pltk">Đã kiểm tra số tài khoản và tên chủ tài khoản mới</label></div>
+    <div class="chips" id="w_pltk" hidden><label><input type="checkbox" id="xn_pltk">Đã kiểm tra số tài khoản mới, tên ngân hàng và tên chủ tài khoản đúng từng ký tự (JMS)</label></div>
+    <label class="row" id="w_plsacom" hidden style="color:var(--bad);font-size:14px"><input type="checkbox" id="xn_plsacom" style="width:auto"> Sacombank đã đổi tên thành Ngân hàng TMCP Sài Gòn Tài Lộc: tôi đã xác nhận lại tên ngân hàng với khách.</label>
     <label class="row" id="w_plkhacten" hidden style="color:var(--bad);font-size:14px"><input type="checkbox" id="xn_plkhacten" style="width:auto"> Chủ tài khoản mới KHÁC tên đứng hợp đồng. Tôi đã kiểm tra, vẫn làm và tự chịu trách nhiệm.</label>
     <div id="pl_xg" class="note" hidden></div>
   </section>
@@ -548,6 +550,8 @@ function localChecks(f){
     else if (!$("xn_dcmoi").checked) e.push("Chưa tick đã kiểm tra địa chỉ mới (mục 3)");
   }
   if (!$("xn_tk").checked) e.push("Chưa tick xác nhận đã kiểm tra số tài khoản và tên chủ tài khoản (mục 5)");
+  if (laSacom(v("b_nh")) && !$("xn_sacom").checked) e.push("Sacombank đã đổi tên thành Ngân hàng TMCP Sài Gòn Tài Lộc: web đã sửa ô ngân hàng, xác nhận lại với khách rồi tick ô đỏ (mục 5)");
+  if (laVietin(v("b_nh")) && laSDT(v("b_so"))) e.push("VietinBank: số tài khoản đang là số điện thoại 10 số. Yêu cầu khách cung cấp số tài khoản ngân hàng (mục 5)");
   const khacTen = f.loai !== "canhan" && v("b_chu") && v("g_tochuc") && !cungTen(v("b_chu"), v("g_tochuc"));
   $("w_khacten").hidden = !khacTen;
   if (khacTen && !$("xn_khacten").checked)
@@ -615,6 +619,7 @@ function invalidate(){ checked = null; $("btn-send").disabled = true; }
 $("view-form").addEventListener("input", e => { if (e.target.id && e.target.type !== "file") invalidate(); });
 function addrLayHang(c){ const p = ["AC","AD","AE","AF"].map(k => c[k]).filter(Boolean); return p.length ? p.join(", ") + ", TP. Hồ Chí Minh" : ""; }
 $("btn-check").onclick = async () => {
+  doiTenNH("b_nh"); veNH();
   const f = readForm(); const box = $("checkout"); box.hidden = false; box.className = "note"; box.textContent = "Đang kiểm tra...";
   store.set("jt-sale", {s_ten:v("s_ten"), s_msnv:v("s_msnv"), s_khu:v("s_khu"), s_sdt:v("s_sdt"), s_bc:v("s_bc"), s_email:v("s_email"), s_manhom:v("s_manhom")});
   const e1 = localChecks(f);
@@ -734,8 +739,28 @@ document.querySelectorAll("#view-form input, #view-form select").forEach(el => e
 /* sửa thông tin sau khi đã tick xác nhận thì phải tick lại */
 ["g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_ngaysinh","g_gioitinh","g_diachi","g_hethan","g_ngaycap2","g_mstmoi"].forEach(id => $(id).addEventListener("input", () => { $("xn_gt").checked = false; }));
 ["b_chu","b_so","b_nh"].forEach(id => $(id).addEventListener("input", () => { $("xn_tk").checked = false; }));
+/* Lưu ý Team HĐ (20/11/2026): Sacombank đổi tên -> TMCP Sài Gòn Tài Lộc (xác nhận lại với khách); VietinBank không dùng SĐT 10 số làm số TK; JMS đối chiếu tên ngân hàng + chủ TK từng ký tự */
+const laSacom = s => /sacombank|sai\s*gon\s*(thuong\s*tin|tai\s*loc)/i.test(unacc(s));
+const laVietin = s => /vietin|cong\s*thuong|\bctg\b/i.test(unacc(s));
+const laSDT = s => /^0\d{9}$/.test(String(s || "").replace(/\s/g, ""));
+function doiTenNH(id){   // ô ngân hàng ghi Sacombank / Sài Gòn Thương Tín -> tên mới, giữ phần chi nhánh
+  const el = $(id); if (!el) return false;
+  const cu = el.value.normalize("NFC");
+  let moi = cu.replace(/\s*\(\s*sacombank\s*\)/i, "")
+    .replace(/(ng[aâ]n\s*h[aà]ng\s*)?(tmcp\s*)?(th[uư][oơ]ng\s*m[aạ]i\s*c[oổ]\s*ph[aầ]n\s*)?(sacombank|s[aà]i\s*g[oò]n\s*th[uư][oơ]ng\s*t[ií]n)/i, "TMCP Sài Gòn Tài Lộc");
+  if (moi === cu) return false;
+  el.value = moi; el.style.borderColor = "var(--warn)"; return true;
+}
+function veNH(){
+  const a = laSacom(v("b_nh")); $("w_sacom").hidden = !a; if (!a) $("xn_sacom").checked = false;
+  const p = laSacom(nho("pa_AL")); $("w_plsacom").hidden = !p; if (!p) $("xn_plsacom").checked = false;
+}
+$("b_nh").addEventListener("change", () => { if (doiTenNH("b_nh")) $("xn_sacom").checked = false; veNH(); invalidate(); });
+$("b_nh").addEventListener("input", () => { $("xn_sacom").checked = false; veNH(); });
 ["b_chu","g_tochuc"].forEach(id => $(id).addEventListener("input", () => { $("xn_khacten").checked = false; $("w_khacten").hidden = true; }));
 $("pl_rows").addEventListener("input", e => { if (e.target.id === "pa_AJ"){ $("xn_plkhacten").checked = false; $("w_plkhacten").hidden = true; } });
+$("pl_rows").addEventListener("input", e => { if (e.target.id === "pa_AL"){ $("xn_plsacom").checked = false; veNH(); } });
+$("pl_rows").addEventListener("change", e => { if (e.target.id === "pa_AL"){ if (doiTenNH("pa_AL")) $("xn_plsacom").checked = false; veNH(); plInvalidate(); } });
 $("s_bc").addEventListener("change", () => { $("s_bc").value = $("s_bc").value.trim().toUpperCase(); });
 
 /* ---------- tạo file + gửi ---------- */
@@ -887,7 +912,7 @@ function veBang(){
   }
   tb.innerHTML = rows.map(([m, tu, sang]) => `<tr><td>${esc(m)}</td><td>${tu}</td><td>${sang}</td></tr>`).join("");
   $("pl_bang").hidden = !rows.length; $("pl_trong").hidden = !!rows.length;
-  $("w_pltk").hidden = !ch.includes("bank");
+  $("w_pltk").hidden = !ch.includes("bank"); veNH();
   const t = plTags(); $("pl_tags").textContent = t.length ? "Sẽ làm: " + t.map(x => TEN_PL[x].replace(x, tagMoi(x))).join(" + ") + ". Nhập thông tin cũ và mới ở mục 5 bên dưới." : "";
   veAnhPL(); veTu(); plInvalidate();
 }
@@ -1135,6 +1160,8 @@ function plLocal(q){
   if (ch.includes("bank")){
     if (!["pa_AJ", "pa_AK", "pa_AL"].some(id => nho(id).trim())) e.push("Chưa nhập tài khoản ngân hàng mới (mục 5)");
     if (!$("xn_pltk").checked) e.push("Chưa tick đã kiểm tra số tài khoản và tên chủ tài khoản mới (mục 5)");
+    if (laSacom(nho("pa_AL")) && !$("xn_plsacom").checked) e.push("Sacombank đã đổi tên thành Ngân hàng TMCP Sài Gòn Tài Lộc: web đã sửa ô ngân hàng mới, xác nhận lại với khách rồi tick ô đỏ (mục 5)");
+    if (laVietin(nho("pa_AL")) && laSDT(nho("pa_AK"))) e.push("VietinBank: số tài khoản mới đang là số điện thoại 10 số. Yêu cầu khách cung cấp số tài khoản ngân hàng (mục 5)");
     const tenHD = PL.canhan ? (PL.hien_tai.U || PL.hien_tai.T) : PL.hien_tai.T;
     const plKhac = !!(nho("pa_AJ").trim() && tenHD && !cungTen(nho("pa_AJ"), tenHD));
     $("w_plkhacten").hidden = !plKhac;
@@ -1242,6 +1269,7 @@ $("pl_check").onclick = async () => {
   if (!PL){ plErr(["Chưa tải file tạo mã mới nhất (mục 3)"]); return; }
   box.className = "note"; box.textContent = "Đang kiểm tra...";
   store.set("jt-sale", {s_ten:v("s_ten"), s_msnv:v("s_msnv"), s_khu:v("s_khu"), s_sdt:v("s_sdt"), s_bc:v("s_bc"), s_email:v("s_email"), s_manhom:v("s_manhom")});
+  doiTenNH("pa_AL"); veNH();
   const q = plReq();
   let eGui = [];
   if (API && /^\d{3}[A-Z]{2}\d{3,}$/.test(q.ma_kh)){
@@ -1302,7 +1330,7 @@ $("pl_send").onclick = async () => {
 /* dấu * đỏ cho ô / ảnh / tick bắt buộc (ô có điều kiện chỉ hiện khi cần) */
 ["s_ten","s_msnv","s_sdt","s_bc","s_email","s_manhom","k_sdt","k_email","f_giayto","g_tochuc","g_nguoi","g_chucvu","g_so","g_ngaycap","g_noicap","g_hethan","g_diachi","g_dcmoi",
  "l_sonha","l_duong","l_phuong","l_quan","b_so","b_nh","p_hcm","p_tinh","p_cu_hcm","p_cu_tinh","p_cu_sl","p_cu_ngung","f_tin_nhan","k_lydotay",
- "xn_gt","xn_tk","xn_dcmoi","xn_token","pl_xlsx","pl_hd","pl_makh","pl_dcmoi","xn_pldcm","xn_hd","xn_tu"].forEach(id => {
+ "xn_gt","xn_tk","xn_sacom","xn_plsacom","xn_dcmoi","xn_token","pl_xlsx","pl_hd","pl_makh","pl_dcmoi","xn_pldcm","xn_hd","xn_tu"].forEach(id => {
   const el = $(id); if (!el) return;
   const lb = document.querySelector(`label[for="${id}"]`) || el.closest("label"); if (!lb) return;
   lb.classList.add(el.type === "checkbox" ? "bbx" : "bb");
