@@ -74,11 +74,12 @@ footer.sig i{display:inline-block;width:6px;height:12px;background:var(--accent)
 <body>
 <header><div class="bar">
   <div class="brand"><i></i>Hồ sơ hợp đồng J&amp;T</div>
-  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 20/11 11:45</span>
+  <span id="engine" class="hint">Bộ tạo file: chưa tải</span><span class="hint" title="Lệch với bản mới nhất thì bấm Ctrl + F5">Phiên bản 22/11 09:14</span>
   <nav><button type="button" id="tab-hd" aria-current="true">Hợp đồng mới</button><button type="button" id="tab-pl" aria-current="false">Làm phụ lục</button></nav>
 </div></header>
 
 <main>
+<div id="team6-prefill-note" class="note" hidden>Đã điền sẵn từ web Team 6: tên sale, tên/SĐT/email khách, giá. Soát lại, rồi tự điền CCCD/STK/MST.</div>
 <div id="access" class="note" hidden></div>
 
 <div id="view-sale" style="display:grid;gap:16px">
@@ -1336,6 +1337,88 @@ $("pl_send").onclick = async () => {
   lb.classList.add(el.type === "checkbox" ? "bbx" : "bb");
 });
 applyLoai();
+
+/* Điền sẵn hồ sơ từ Team 6. Chỉ nhận các trường được liệt kê tại đây. */
+(function prefillTeam6() {
+  const hash = location.hash;
+  if (!hash.startsWith("#hs=")) return;
+  try {
+    history.replaceState(history.state, "", location.pathname + location.search);
+  } catch (_) {
+    return;
+  }
+
+  let data;
+  try {
+    const encoded = hash.slice(4);
+    if (!/^[A-Za-z0-9_-]+={0,2}$/.test(encoded)) return;
+    const binary = atob(encoded.replace(/-/g, "+").replace(/_/g, "/"));
+    data = JSON.parse(new TextDecoder("utf-8", {fatal: true}).decode(
+      Uint8Array.from(binary, ch => ch.charCodeAt(0))));
+  } catch (_) {
+    return;
+  }
+
+  const record = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const str = value => typeof value === "string" ? value.trim().slice(0, 200) : "";
+  // Ô giá hiện hữu bỏ mọi ký tự ngoài chữ số; chỉ nhận số nguyên VND.
+  const price = value => Number.isSafeInteger(value) && value >= 0 ? String(value) : "";
+  const kg = value => Number.isFinite(value) && value > 0 && /^\d+(?:\.\d+)?$/.test(String(value)) ? String(value) : "";
+  const payload = record(data), sale = record(payload.sale), khach = record(payload.khach), gia = record(payload.gia);
+  let changed = false;
+  function fill(id, value) {
+    const field = document.getElementById(id);
+    if (!field || field.value !== "" || value === "") return;
+    field.value = value;
+    if (field.value === "") return;
+    field.dispatchEvent(new Event("input", {bubbles: true}));
+    changed = true;
+  }
+  fill("s_ten", str(sale.ten));
+  fill("s_msnv", str(sale.ma));
+  fill("s_sdt", str(sale.sdt));
+  fill("k_shop", str(khach.ten));
+  fill("k_sdt", str(khach.sdt));
+  fill("k_email", str(khach.email));
+
+  const kind = str(khach.loai);
+  if (["canhan", "hkd", "congty"].includes(kind)) {
+    const radios = Array.from(document.querySelectorAll('input[name="loai"]'));
+    const next = radios.find(field => field.value === kind);
+    if (next && !next.checked && radios.every(field => field.checked === field.defaultChecked)) {
+      next.checked = true;
+      next.dispatchEvent(new Event("input", {bubbles: true}));
+      next.dispatchEvent(new Event("change", {bubbles: true}));
+      changed = true;
+    }
+  }
+
+  function route(value) {
+    const label = str(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+      .replace(/\b(?:tp\.?\s*)?(?:ho chi minh|hcm)\b/g, "hcm")
+      .replace(/[^a-z0-9]+/g, " ").trim();
+    if (/^(hcm hcm|noi tinh(?: hcm)?|noi thanh(?: hcm)?|hcm noi tinh|hcm noi thanh)$/.test(label)) return "hcm";
+    if (/^(hcm (?:di )?tinh|lien tinh|ngoai tinh|hcm lien tinh|hcm ngoai tinh)$/.test(label)) return "tinh";
+    return "";
+  }
+  const lines = Array.isArray(gia.lines) ? gia.lines.map(record) : [];
+  const byRoute = key => lines.filter(line => route(line.tuyen) === key);
+  const local = byRoute("hcm"), remote = byRoute("tinh");
+  let hcm = local.length === 1 ? local[0] : null;
+  let tinh = remote.length === 1 ? remote[0] : null;
+  if (lines.length === 2 && local.length < 2 && remote.length < 2) {
+    if (!hcm && !tinh) [hcm, tinh] = lines;
+    else if (!hcm) hcm = lines.find(line => line !== tinh);
+    else if (!tinh) tinh = lines.find(line => line !== hcm);
+  }
+  if (hcm) fill("p_hcm", price(hcm.gia));
+  if (tinh) fill("p_tinh", price(tinh.gia));
+  const limits = [...new Set((hcm || tinh ? [hcm, tinh].filter(Boolean) : lines)
+    .map(line => kg(line.mocKg)).filter(Boolean))];
+  if (limits.length === 1) fill("p_moc", limits[0]);
+
+  if (changed) document.getElementById("team6-prefill-note").hidden = false;
+})();
 </script>
 </body>
 </html>
