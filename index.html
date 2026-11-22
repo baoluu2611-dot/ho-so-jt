@@ -9,17 +9,17 @@
 <style>
 :root{
   /* Bố cục: 1 cột form đánh số theo thứ tự hồ sơ, thanh trên có tab; màu đỏ J&T chỉ dùng cho nút chính */
-  --bg:#f5f4f3; --panel:#ffffff; --ink:#1d1b1b; --muted:#6b6464; --line:#e3dfdd; --accent:#d71920; --accent-ink:#ffffff;
-  --ok:#1f7a45; --warn:#9a6200; --bad:#b3261e; --soft:#faf1f1;
+  --bg:#f2f3f2; --panel:#ffffff; --ink:#1f2224; --muted:#5f656a; --line:#e4e6e5; --accent:#b5343f; --accent-ink:#ffffff;
+  --ok:#2a7d57; --warn:#946017; --bad:#b4443b; --soft:#f6f7f6;
   --font:"Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#161414; --panel:#211e1e; --ink:#f1eded; --muted:#a59d9d; --line:#3a3434; --accent:#ef3b41; --accent-ink:#ffffff;
-  --ok:#5cc489; --warn:#e3a640; --bad:#ff7b72; --soft:#2b2020; color-scheme: dark; } }
+  --bg:#17181a; --panel:#1f2124; --ink:#e3e5e6; --muted:#9a9fa4; --line:#2e3135; --accent:#c4474f; --accent-ink:#ffffff;
+  --ok:#5fbfa0; --warn:#d6a550; --bad:#e08279; --soft:#25282b; color-scheme: dark; } }
 :root[data-theme="dark"]{
-  --bg:#161414; --panel:#211e1e; --ink:#f1eded; --muted:#a59d9d; --line:#3a3434; --accent:#ef3b41; --accent-ink:#ffffff;
-  --ok:#5cc489; --warn:#e3a640; --bad:#ff7b72; --soft:#2b2020; color-scheme: dark; }
+  --bg:#17181a; --panel:#1f2124; --ink:#e3e5e6; --muted:#9a9fa4; --line:#2e3135; --accent:#c4474f; --accent-ink:#ffffff;
+  --ok:#5fbfa0; --warn:#d6a550; --bad:#e08279; --soft:#25282b; color-scheme: dark; }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font)}
@@ -48,6 +48,9 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .chips label:has(input:checked){border-color:var(--accent);background:var(--soft)}
 .btn{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 16px;border-radius:8px;cursor:pointer;font-weight:500;text-decoration:none;display:inline-block}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary{background:#2b2f33;border-color:#2b2f33;color:#f3f4f4}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .btn.primary{background:#d3d6d8;border-color:#d3d6d8;color:#17181a} }
+:root[data-theme="dark"] .btn.primary{background:#d3d6d8;border-color:#d3d6d8;color:#17181a}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.sm{padding:5px 10px;font-size:13px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
